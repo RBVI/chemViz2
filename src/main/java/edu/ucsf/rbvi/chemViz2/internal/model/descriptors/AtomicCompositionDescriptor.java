@@ -3,7 +3,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 import java.util.List;
 
 import org.openscience.cdk.interfaces.IAtom;
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.CDKUtils;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
@@ -20,7 +20,7 @@ public class AtomicCompositionDescriptor implements Descriptor <Double> {
 
 	@Override
 	public Double getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 		if (iMolecule == null) return null;
 
 		int totalAtoms = 0;

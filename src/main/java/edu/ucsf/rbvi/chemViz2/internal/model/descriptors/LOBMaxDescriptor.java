@@ -2,7 +2,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 
 import java.util.List;
 
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.qsar.DescriptorValue;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
 import org.openscience.cdk.qsar.descriptors.molecular.LengthOverBreadthDescriptor;
@@ -26,7 +26,7 @@ public class LOBMaxDescriptor implements Descriptor <Double> {
 
 	@Override
 	public Double getDescriptor(Compound c) {
-		IMolecule iMolecule3D = c.getMolecule3D();
+		IAtomContainer iMolecule3D = c.getMolecule3D();
 		if (iMolecule3D == null) return null;
 		IMolecularDescriptor descriptor = new LengthOverBreadthDescriptor();
 		DescriptorValue val = descriptor.calculate(iMolecule3D);

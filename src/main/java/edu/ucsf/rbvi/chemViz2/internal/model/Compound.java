@@ -18,8 +18,8 @@ import org.cytoscape.model.CyNetwork;
 
 import edu.ucsf.rbvi.chemViz2.internal.view.ViewUtils;
 
+import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.Molecule;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
@@ -27,7 +27,7 @@ import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
 import org.openscience.cdk.modeling.builder3d.TemplateHandler3D;
 import org.openscience.cdk.smiles.SmilesGenerator;
@@ -43,7 +43,7 @@ import net.sf.jniinchi.INCHI_RET;
  * by having a single attribute that contains multiple descriptors 
  * (e.g. comma-separated SMILES strings).  The creation of a Compound 
  * results in the building of a cached 2D image for that compound, as 
- * well as the creation of the CDK IMolecule, which is used for conversion 
+ * well as the creation of the CDK IAtomContainer, which is used for conversion 
  * from InChI to SMILES, for calculation of the molecular weight,
  * and for the calculation of Tanimoto coefficients.
  */
@@ -69,8 +69,8 @@ public class Compound {
 	protected Image renderedImage;
 	protected boolean laidOut;
 	private AttriType attrType;
-	private IMolecule iMolecule;
-	private IMolecule iMolecule3D;
+	private IAtomContainer iMolecule;
+	private IAtomContainer iMolecule3D;
 	private BitSet fingerPrint;
 	private IFingerprinter fp;
 	private int lastImageWidth = -1;
@@ -97,7 +97,7 @@ public class Compound {
 	}
 
 	/**
- 	 * This alternative form of the constructor is called when we've calculated an IMolecule internally and it
+ 	 * This alternative form of the constructor is called when we've calculated an IAtomContainer internally and it
  	 * bypasses the creation.
  	 *
  	 * @param source the graph object that holds this compound
@@ -108,7 +108,7 @@ public class Compound {
  	 */
 	public Compound(ChemInfoSettings settings, CyIdentifiable source, CyNetwork network, 
 	                String attribute, String mstring, 
-	                IMolecule molecule, AttriType attrType) {
+	                IAtomContainer molecule, AttriType attrType) {
 		this.source = source;
 		this.attribute = attribute;
 		this.moleculeString = mstring.trim();
@@ -139,7 +139,7 @@ public class Compound {
 		return network;
 	}
 
-	public IMolecule getMolecule() {
+	public IAtomContainer getMolecule() {
 		return iMolecule;
 	}
 
@@ -155,7 +155,7 @@ public class Compound {
 		return "source="+source+" attribute="+attribute+" molString="+moleculeString;
 	}
 
-	public IMolecule getMolecule3D() {
+	public IAtomContainer getMolecule3D() {
 		if (iMolecule3D == null) {
 			try {
 				ModelBuilder3D mb3d = 
@@ -185,7 +185,7 @@ public class Compound {
 		if (fingerPrint == null) {
 			try {
 				synchronized (fp) {
-					fingerPrint = fp.getFingerprint(CDKUtils.addh(iMolecule));
+					fingerPrint = fp.getBitFingerprint(CDKUtils.addh(iMolecule)).asBitSet();
 				}
 			} catch (Exception e) {
 				logger.warn("Error calculating fingerprint: "+e);
@@ -230,7 +230,7 @@ public class Compound {
 	}
 	
 
-	private void createStructure(IMolecule molecule) {
+	private void createStructure(IAtomContainer molecule) {
 		long startTime = Calendar.getInstance().getTimeInMillis();
 
 		this.renderedImage = null;
@@ -267,14 +267,20 @@ public class Compound {
 			} catch (InvalidSmilesException e) {
 				iMolecule = null;
 				logger.warn("Unable to parse SMILES: "+smilesStr+" for "+TableUtils.getName(network, source)+": "+e.getMessage());
-				return;
+				// Try again -- just in case.  CDK 1.5.1 gets a little confused sometimes...
+				sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+				try {
+					iMolecule = sp.parseSmiles(this.smilesStr);
+				} catch (InvalidSmilesException e2) {
+					return;
+				}
 			}
 		}
 
 		long smilesTime = Calendar.getInstance().getTimeInMillis();
 		totalSMILESTime += smilesTime-fpTime;
 
-		// At this point, we should have an IMolecule
+		// At this point, we should have an IAtomContainer
 		try { 
 			CDKHueckelAromaticityDetector.detectAromaticity(iMolecule);
 
@@ -316,7 +322,7 @@ public class Compound {
 				return null;
 			}
 
-			IMolecule molecule = new Molecule(intostruct.getAtomContainer());
+			IAtomContainer molecule = new AtomContainer(intostruct.getAtomContainer());
 			// Use the molecule to create a SMILES string
 			SmilesGenerator sg = new SmilesGenerator();
 			return sg.createSMILES(molecule);

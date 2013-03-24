@@ -2,7 +2,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 
 import java.util.List;
 
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.qsar.IMolecularDescriptor;
 import org.openscience.cdk.qsar.result.DoubleResult;
 import org.openscience.cdk.qsar.descriptors.molecular.ZagrebIndexDescriptor;
@@ -25,7 +25,7 @@ public class ZagrebDescriptor implements Descriptor <Double> {
 
 	@Override
 	public Double getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 		if (iMolecule == null) return null;
 		IMolecularDescriptor descriptor = new ZagrebIndexDescriptor();
 		DoubleResult retval = (DoubleResult)(descriptor.calculate(iMolecule).getValue());

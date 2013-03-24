@@ -449,7 +449,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		Point2d vertexC = new Point2d(vertexB);
 		vertexB.add(normal);
 		vertexC.sub(normal);
-		if (wedge.isDashed) {
+		if (wedge.type == WedgeLineElement.TYPE.DASHED) {
 			this.drawDashedWedge(vertexA, vertexB, vertexC, wedge.color);
 		} else {
 			this.drawFilledWedge(vertexA, vertexB, vertexC, wedge.color);

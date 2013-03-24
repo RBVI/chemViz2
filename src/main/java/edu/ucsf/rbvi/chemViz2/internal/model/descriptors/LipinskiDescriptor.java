@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
@@ -26,7 +26,7 @@ public class LipinskiDescriptor implements Descriptor <Map<Descriptor, Object>> 
 
 	@Override
 	public Map<Descriptor, Object> getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 
 		if (iMolecule == null) return null;
 		Map<Descriptor, Object> lip = new HashMap<Descriptor,Object>();

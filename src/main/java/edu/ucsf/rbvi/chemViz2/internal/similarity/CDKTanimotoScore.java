@@ -5,7 +5,6 @@ import java.util.BitSet;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.fingerprint.Fingerprinter;
-import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.similarity.Tanimoto;
 import org.openscience.cdk.smiles.SmilesParser;
 

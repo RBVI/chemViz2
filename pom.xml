@@ -32,14 +32,19 @@
 						<Private-Package>${bundle.namespace}.*</Private-Package>
 						<Bundle-Activator>${bundle.namespace}.CyActivator</Bundle-Activator>
 						<Embed-Dependency>cdk;scope=compile|runtime</Embed-Dependency>
+						<Embed-Dependency>smsd;scope=compile|runtime</Embed-Dependency>
 						<Import-Package>
-							javax.xml.parsers,javax.swing.*,!javax.*,!arq.*,!com.hp.hpl.jena.*,!com.sun.*,!junit.*,
-							!org.apache.*,!org.jgraph.*,!org.junit.*,!sun.util.calendar.*,*
+							javax.xml.parsers,javax.swing.*,
+							org.xml.sax,org.xml.sax.helpers,org.xml.sax.ext,
+							!javax.*,!arq.*,!com.hp.hpl.jena.*,!com.sun.*,!junit.*,
+							!org.apache.*,!org.jgraph.*,!org.junit.*,!sun.util.calendar.*,!net.sf.jniinchi,
+							!org.openscience.*,!cmd,
+							*
 						</Import-Package>
 					</instructions>
 				</configuration>
 			</plugin>
-			<!-- plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>1.4</version>
@@ -53,13 +58,15 @@
 							<artifactSet>
 								<includes>
 									<include>org.openscience.cdk:*</include>
+									<include>org.openscience.smsd:*</include>
+									<include>org.apache.commons:commons-math3</include>
 								</includes>
 							</artifactSet>
-							<minimizeJar>true</minimizeJar>
+							<minimizeJar>false</minimizeJar>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin -->
+			</plugin>
 		</plugins>
 	</build>
 
@@ -156,10 +163,17 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk</artifactId>
-			<version>1.4.15</version>
-			<!-- scope>system</scope -->
-			<!-- systemPath>${basedir}/lib/cdk-1.4.15.jar</systemPath -->
-			<!-- systemPath>/tmp/cdk-1.4.15.jar</systemPath -->
+			<version>1.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openscience.smsd</groupId>
+			<artifactId>smsd</artifactId>
+			<version>1.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.0</version>
 		</dependency>
 	</dependencies>
 

@@ -7,7 +7,6 @@ import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IAtomType.Hybridization;
-import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.interfaces.IRing;
 import org.openscience.cdk.interfaces.IRingSet;
 import org.openscience.cdk.ringsearch.SSSRFinder;
@@ -26,7 +25,7 @@ public class AromaticRingCountDescriptor implements Descriptor <Integer> {
 
 	@Override
 	public Integer getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 		if (iMolecule == null) return null;
 
 		SSSRFinder finder = new SSSRFinder(iMolecule);

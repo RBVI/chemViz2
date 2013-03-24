@@ -36,12 +36,14 @@
 package edu.ucsf.rbvi.chemViz2.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +63,12 @@ import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
 
-import org.openscience.cdk.Molecule;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
-import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.isomorphism.UniversalIsomorphismTester;
 import org.openscience.cdk.smiles.SmilesGenerator;
+
+import org.openscience.smsd.mcss.JobType;
+import org.openscience.smsd.mcss.MCSS;
+import org.openscience.smsd.mcss.TaskUpdater;
 
 
 /**
@@ -75,7 +76,7 @@ import org.openscience.cdk.smiles.SmilesGenerator;
  * object passed in its constructor and provides some methods to allow
  * the caller to fetch the compounds when the task is complete.
  */
-public class CalculateMCSSTask extends AbstractCompoundTask {
+public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdater {
 	ChemInfoSettings settings;
 	CyGroupManager groupManager;
 	CyGroupFactory groupFactory;
@@ -83,7 +84,7 @@ public class CalculateMCSSTask extends AbstractCompoundTask {
 	CyNetwork network;
 	String type;
 	List<Compound> compoundList;
-	IMolecule mcss = null;
+	IAtomContainer mcss = null;
 	boolean showResult = false;
 	boolean createGroup = false;
 	boolean calculationComplete = false;
@@ -121,7 +122,11 @@ public class CalculateMCSSTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the popup.
  	 */
 	public void run(TaskMonitor taskMonitor) {
+		this.monitor = taskMonitor;
+		if (monitor != null) monitor.setTitle("Calculating MCSS");
+
 		int maxThreads = settings.getMaxThreads();
+		setStatus("Getting compounds");
 		compoundList = getCompounds(objectList, network,
                                 settings.getCompoundAttributes(type,AttriType.smiles),
                                 settings.getCompoundAttributes(type,AttriType.inchi), maxThreads);
@@ -129,17 +134,16 @@ public class CalculateMCSSTask extends AbstractCompoundTask {
 		int nThreads = Runtime.getRuntime().availableProcessors()-1;
 		if (maxThreads > 0) nThreads = maxThreads;
 
-		List<IAtomContainer> mcssList = Collections.synchronizedList(new ArrayList<IAtomContainer>(compoundList.size()));
+		List<IAtomContainer> targetList = Collections.synchronizedList(new ArrayList<IAtomContainer>(compoundList.size()));
 		for (Compound c: compoundList) {
-			mcssList.add(c.getMolecule());
+			if (c.getMolecule() != null)
+				targetList.add(c.getMolecule());
 		}
 
-		int pass = 0;
-		while (mcssList.size() > 1) {
-			mcssList = calculateMCSS(mcssList, nThreads);
-			pass++;
-		}
-		mcss = (IMolecule)mcssList.get(0);
+		MCSS mcssJob = new MCSS(targetList, JobType.SINGLE, this, nThreads);
+		Collection<IAtomContainer> calculatedMCSS = mcssJob.getCalculateMCSS();
+		if (calculatedMCSS != null && calculatedMCSS.size() == 1)
+			mcss = calculatedMCSS.iterator().next();
 
 		calculationComplete = true;	
 		if (showResult) {
@@ -208,76 +212,32 @@ public class CalculateMCSSTask extends AbstractCompoundTask {
 
 	public List<Compound>getCompoundList() { return compoundList; }
 
-	private List<IAtomContainer> calculateMCSS(List<IAtomContainer>mcssList, int nThreads) {
-		List<IAtomContainer> newMCSSList = Collections.synchronizedList(new ArrayList<IAtomContainer>(nThreads));
-		List<GetMCSSTask> taskList = new ArrayList<GetMCSSTask>();
-
-		if (nThreads == 1) {
-			GetMCSSTask task = new GetMCSSTask(mcssList, newMCSSList);
-			task.call();
-		} else {
-			int step = (int)Math.ceil((double)mcssList.size()/(double)nThreads);
-			if (step < 2) step = 2; // Can't have a step size of less than 2
-			for (int i = 0; i < mcssList.size(); i=i+step) {
-				int endPoint = i+step;
-				if (endPoint > mcssList.size())
-					endPoint = mcssList.size();
-				taskList.add(new GetMCSSTask(mcssList.subList(i, endPoint), newMCSSList));
-			}
-
-			ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
-			try {
-				threadPool.invokeAll(taskList);
-			} catch (Exception e) {
-				logger.warn("Execution exception: "+e);
-			}
-		}
-		return newMCSSList;
+	public void setTotalCount(int count) {
+		totalObjects = count;
+		objectCount = 0;
 	}
 
-	private class GetMCSSTask implements Callable <IAtomContainer> {
-		List<IAtomContainer> mcssList;
-		List<IAtomContainer> resultsList;
-		IAtomContainer mcss = null;
-
-		public GetMCSSTask(List<IAtomContainer>mcssList, List<IAtomContainer>resultsList) {
-			this.mcssList = mcssList;
-			this.resultsList = resultsList;
-		}
-
-		public IAtomContainer call() {
-			mcss = mcssList.get(0);
-			try {
-				for (int index = 1; index < mcssList.size(); index++) {
-					List<IAtomContainer> overlap = UniversalIsomorphismTester.getOverlaps(mcss, mcssList.get(index));
-					mcss = maximumStructure(overlap);
-					if (mcss == null) break;
-				}
-			} catch (CDKException e) {
-				System.out.println("CDKException: "+e);
-			}
-			resultsList.add(mcss);
-			return mcss;
-		}
-	
-		private IMolecule maximumStructure(List<IAtomContainer> mcsslist) {
-			int maxmcss = -99999999;
-			IAtomContainer maxac = null;
-			if (mcsslist == null || mcsslist.size() == 0) return null;
-			for (IAtomContainer a: mcsslist) {
-				if (a.getAtomCount() > maxmcss) {
-					maxmcss = a.getAtomCount();
-					maxac = a;
-				}
-			}
-			return new Molecule(maxac);
-		}
-
-		public IAtomContainer get() { 
-			if (mcss == null) 
-				return call();
-			else
-				return mcss; 
-		}
+	public synchronized void incrementCount() {
+		updateMonitor();
 	}
+
+	public synchronized void updateStatus(String status) {
+		setStatus(status);
+	}
+
+	public synchronized void logException(String className, Level level, String message, Exception exception) {
+		if (message == null) message = exception.getMessage();
+
+		if (level == Level.SEVERE) {
+			logger.error("Fatal error in "+className+": "+message, exception);
+		}
+
+		if (level == Level.WARNING) 
+			logger.warn("Error in "+className+": "+message);
+		else if (level == Level.INFO)
+			logger.info(className+": "+message);
+		else 
+			logger.debug(className+": "+message);
+	}
+
 }

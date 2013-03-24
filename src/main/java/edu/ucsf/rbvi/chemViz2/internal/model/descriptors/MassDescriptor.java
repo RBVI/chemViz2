@@ -3,7 +3,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 import java.util.List;
 
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.CDKUtils;
@@ -21,7 +21,7 @@ public class MassDescriptor implements Descriptor <Double> {
 
 	@Override
 	public Double getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 		if (iMolecule == null) return null;
 		IMolecularFormula mfa = MolecularFormulaManipulator.getMolecularFormula(CDKUtils.addh(iMolecule));
 		return MolecularFormulaManipulator.getTotalExactMass(mfa);

@@ -2,7 +2,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 
 import java.util.List;
 
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
@@ -18,7 +18,7 @@ public class HeavyAtomCountDescriptor implements Descriptor <Integer> {
 
 	@Override
 	public Integer getDescriptor(Compound c) {
-		IMolecule iMolecule = c.getMolecule();
+		IAtomContainer iMolecule = c.getMolecule();
 		if (iMolecule == null) return null;
 			int heavyAtomCount = 0;
 			for (int i = 0; i < iMolecule.getAtomCount(); i++) {

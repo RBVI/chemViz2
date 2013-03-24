@@ -2,7 +2,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 
 import java.util.List;
 
-import org.openscience.cdk.interfaces.IMolecule;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;

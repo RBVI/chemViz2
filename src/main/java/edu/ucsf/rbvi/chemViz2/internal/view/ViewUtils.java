@@ -19,7 +19,6 @@ import java.util.List;
 import org.cytoscape.view.presentation.customgraphics.PaintedShape;
 
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.font.AWTFontManager;
@@ -31,7 +30,7 @@ import org.openscience.cdk.renderer.generators.IGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
 public class ViewUtils {
-	public static Image createImage(IMolecule iMolecule, int width, int height,
+	public static Image createImage(IAtomContainer iMolecule, int width, int height,
 	                                Paint background) {
 		if (iMolecule == null || width == 0 || height == 0) {
 			return blankImage(iMolecule, width, height);
@@ -79,7 +78,7 @@ public class ViewUtils {
 	}
 
 	public static List<PaintedShape> createShapes(double x, double y, double width, double height,
-	                                              IMolecule mol, Paint background) {
+	                                              IAtomContainer mol, Paint background) {
 		if (mol == null) return null;
 
 		double boxSize = 100.0;
@@ -99,7 +98,7 @@ public class ViewUtils {
 		}
 	}
 
-	private static Image blankImage(IMolecule mol, int width, int height) {
+	private static Image blankImage(IAtomContainer mol, int width, int height) {
 		final String noImage = "Image Unavailable";
 
 		if (width == 0 || height == 0)
