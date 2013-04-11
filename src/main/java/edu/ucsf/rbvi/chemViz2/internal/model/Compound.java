@@ -19,7 +19,6 @@ import org.cytoscape.model.CyNetwork;
 import edu.ucsf.rbvi.chemViz2.internal.view.ViewUtils;
 
 import org.openscience.cdk.AtomContainer;
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
@@ -30,6 +29,7 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
 import org.openscience.cdk.modeling.builder3d.TemplateHandler3D;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
@@ -261,14 +261,14 @@ public class Compound {
 
 		if (this.iMolecule == null) {
 			// Create the CDK Molecule object
-			SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+			SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
 			try {
 				iMolecule = sp.parseSmiles(this.smilesStr);
 			} catch (InvalidSmilesException e) {
 				iMolecule = null;
 				logger.warn("Unable to parse SMILES: "+smilesStr+" for "+TableUtils.getName(network, source)+": "+e.getMessage());
 				// Try again -- just in case.  CDK 1.5.1 gets a little confused sometimes...
-				sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+				sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
 				try {
 					iMolecule = sp.parseSmiles(this.smilesStr);
 				} catch (InvalidSmilesException e2) {
@@ -310,7 +310,7 @@ public class Compound {
 
 			logger.debug("Getting structure for: "+inchi);
 
-			InChIToStructure intostruct = factory.getInChIToStructure(inchi, DefaultChemObjectBuilder.getInstance());
+			InChIToStructure intostruct = factory.getInChIToStructure(inchi, SilentChemObjectBuilder.getInstance());
 
 			// Get the structure
 			INCHI_RET ret = intostruct.getReturnStatus();

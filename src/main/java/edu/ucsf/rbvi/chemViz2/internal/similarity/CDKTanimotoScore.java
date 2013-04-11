@@ -2,7 +2,6 @@ package edu.ucsf.rbvi.chemViz2.internal.similarity;
 
 import java.util.BitSet;
 
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.fingerprint.Fingerprinter;
 import org.openscience.cdk.similarity.Tanimoto;

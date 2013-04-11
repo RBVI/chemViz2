@@ -40,7 +40,6 @@ import org.openscience.cdk.fingerprint.HybridizationFingerprinter;
 import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.fingerprint.KlekotaRothFingerprinter;
 import org.openscience.cdk.fingerprint.MACCSFingerprinter;
-import org.openscience.cdk.fingerprint.PubchemFingerprinter;
 import org.openscience.cdk.fingerprint.SubstructureFingerprinter;
 
 public enum Fingerprinter {
@@ -51,7 +50,7 @@ public enum Fingerprinter {
 	HYBRIDIZATION("Hybridization", HybridizationFingerprinter.class),
 	KLEKOTAROTH("Klekota & Roth", KlekotaRothFingerprinter.class),
 	MACCS("MACCS", MACCSFingerprinter.class),
-	PUBCHEM("Pubchem", PubchemFingerprinter.class),
+	PUBCHEM("Pubchem", PubchemFingerprinterWrapper.class),
 	SUBSTRUCTURE("Substructure bitset", SubstructureFingerprinter.class);
 
   private String name;

@@ -185,6 +185,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 	public void handleEvent(SetCurrentNetworkEvent e) {
 		this.network = e.getNetwork();
+		possibleAttributes = null;
 		updateAttributes(network);
 	}
 
