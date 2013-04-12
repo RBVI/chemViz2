@@ -299,7 +299,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsMenuProperties.setProperty(COMMAND, "settings");
 		settingsMenuProperties.setProperty(COMMAND_NAMESPACE, "chemviz");
 		settingsMenuProperties.setProperty(INSERT_SEPARATOR_BEFORE, "true");
-		settingsMenuProperties.setProperty(IN_TOOL_BAR, "true");
+		settingsMenuProperties.setProperty(IN_MENU_BAR, "true");
 		settingsMenuProperties.setProperty(MENU_GRAVITY, "110.0");
 		registerService(bc, settingsTaskFactory, TaskFactory.class, settingsMenuProperties);
 		registerService(bc, settingsTaskFactory, ChemInfoSettingsTaskFactory.class, 
@@ -317,7 +317,7 @@ public class CyActivator extends AbstractCyActivator {
 		properties.setProperty(TITLE, title);
 		properties.setProperty(COMMAND, command);
 		properties.setProperty(ENABLE_FOR, enable);
-		properties.setProperty(IN_TOOL_BAR, "true");
+		properties.setProperty(IN_MENU_BAR, "true");
 		properties.setProperty(COMMAND_NAMESPACE, "chemviz");
 		properties.setProperty(MENU_GRAVITY, gravity);
 
@@ -332,7 +332,7 @@ public class CyActivator extends AbstractCyActivator {
 			// These are all the same
 			properties.setProperty(COMMAND, command);
 			properties.setProperty(ENABLE_FOR, enable);
-			properties.setProperty(IN_TOOL_BAR, "true");
+			properties.setProperty(IN_MENU_BAR, "true");
 			properties.setProperty(COMMAND_NAMESPACE, "chemviz");
 			properties.setProperty(MENU_GRAVITY, gravity); // We can use the same gravity
 			properties.setProperty(PREFERRED_MENU, baseMenu);
