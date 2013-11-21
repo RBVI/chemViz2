@@ -163,12 +163,12 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk</artifactId>
-			<version>1.5.1</version>
+			<version>1.5.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.smsd</groupId>
 			<artifactId>smsd</artifactId>
-			<version>1.5.1</version>
+			<version>1.5.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

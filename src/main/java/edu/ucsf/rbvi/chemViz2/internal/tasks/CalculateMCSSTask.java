@@ -140,7 +140,7 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 				targetList.add(c.getMolecule());
 		}
 
-		MCSS mcssJob = new MCSS(targetList, JobType.SINGLE, this, nThreads);
+		MCSS mcssJob = new MCSS(targetList, JobType.SINGLE, (TaskUpdater)this, nThreads);
 		Collection<IAtomContainer> calculatedMCSS = mcssJob.getCalculateMCSS();
 		if (calculatedMCSS != null && calculatedMCSS.size() == 1)
 			mcss = calculatedMCSS.iterator().next();
