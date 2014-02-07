@@ -21,6 +21,7 @@ public class DescriptorManager {
 		addDescriptor(new ImageDescriptor());
 		addDescriptor(new AttributeDescriptor());
 		addDescriptor(new IdentifierDescriptor());
+		addDescriptor(new FormulaDescriptor());
 		addDescriptor(new LipinskiDescriptor(this));
 		addDescriptor(new SDFDescriptor(this));
 		addDescriptor(new ALogPDescriptor());

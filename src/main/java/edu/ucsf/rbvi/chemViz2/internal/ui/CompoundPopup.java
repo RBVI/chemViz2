@@ -82,7 +82,7 @@ public class CompoundPopup extends JDialog implements ComponentListener {
 		super();
 
 		this.compoundList = compoundList;
-		this.imageMap = new HashMap();
+		this.imageMap = new HashMap<Component, Compound>();
 		this.labelAttribute = labelAttribute;
 		this.network = network;
 

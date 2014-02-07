@@ -45,9 +45,11 @@ import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundEdgeTableTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundNodeTableTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CreateEdgeAttributesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CreateNodeAttributesTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.HideResultsPanelTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.PaintNodeStructuresTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchEdgesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchNodesTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.ShowResultsPanelTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SimilarityNetworkTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemVizAbstractTaskFactory.Scope;
 import edu.ucsf.rbvi.chemViz2.internal.view.CustomGraphicsFactory;
@@ -288,6 +290,31 @@ public class CyActivator extends AbstractCyActivator {
 			addMenus(bc, similarityTaskFactory, menu, "using selected nodes", "create smilarity", 
 			         Scope.SELECTEDNODES, "networkAndView", "8.2", true);
 		}
+
+		// ChemVizResultsPanel -- needsGUI
+    if (haveGUI) {
+			Properties showResultsProps = new Properties();
+			showResultsProps.setProperty(ID, "showResultsTaskFactory");
+			showResultsProps.setProperty(PREFERRED_MENU, "Apps.Cheminformatics Tools");
+			showResultsProps.setProperty(TITLE, "Show Results Panel");
+			showResultsProps.setProperty(COMMAND, "show results");
+			showResultsProps.setProperty(COMMAND_NAMESPACE, "chemviz");
+			showResultsProps.setProperty(IN_MENU_BAR, "true");
+			showResultsProps.setProperty(MENU_GRAVITY, "20.0");
+			TaskFactory showResultsTaskFactory = new ShowResultsPanelTaskFactory(settings);
+			registerService(bc, showResultsTaskFactory, TaskFactory.class, showResultsProps);
+
+			Properties hideResultsProps = new Properties();
+			hideResultsProps.setProperty(ID, "showResultsTaskFactory");
+			hideResultsProps.setProperty(PREFERRED_MENU, "Apps.Cheminformatics Tools");
+			hideResultsProps.setProperty(TITLE, "Hide Results Panel");
+			hideResultsProps.setProperty(COMMAND, "hide results");
+			hideResultsProps.setProperty(COMMAND_NAMESPACE, "chemviz");
+			hideResultsProps.setProperty(IN_MENU_BAR, "true");
+			hideResultsProps.setProperty(MENU_GRAVITY, "20.0");
+			TaskFactory hideResultsTaskFactory = new HideResultsPanelTaskFactory(settings);
+			registerService(bc, hideResultsTaskFactory, TaskFactory.class, hideResultsProps);
+    }
 
 		// Settings Menu
 		ChemInfoSettingsTaskFactory settingsTaskFactory = 

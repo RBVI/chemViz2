@@ -55,6 +55,7 @@ import org.cytoscape.work.util.ListSingleSelection;
 import edu.ucsf.rbvi.chemViz2.internal.model.CompoundManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.ui.ChemVizResultsPanel;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -77,6 +78,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	private DescriptorManager descriptorManager = null;
 	private CyServiceRegistrar serviceRegistrar = null;
 	private boolean haveGUI = true;
+	private ChemVizResultsPanel resultsPanel = null;
 
 	@Tunable(description="Maximum number of compounds to show in 2D structure popup", groups=" ")
 	public int maxCompounds = 0;
@@ -128,6 +130,10 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	public CompoundManager getCompoundManager() { return compoundManager; }
 	public DescriptorManager getDescriptorManager() { return descriptorManager; }
 	public CyServiceRegistrar getServiceRegistrar() { return serviceRegistrar; }
+	public CyNetwork getCurrentNetwork() { 
+		network = manager.getCurrentNetwork();
+		return network;
+	}
 
 	public boolean hasNodeCompounds(Collection<CyNode> nodeSet) {
 		if (network == null) return false;
@@ -187,6 +193,14 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		this.network = e.getNetwork();
 		possibleAttributes = null;
 		updateAttributes(network);
+	}
+
+	public ChemVizResultsPanel getResultsPanel() {
+		return resultsPanel;
+	}
+
+	public void setResultsPanel(ChemVizResultsPanel panel) {
+		resultsPanel = panel;
 	}
 
 	private void updateAttributes(CyNetwork network) {
