@@ -40,7 +40,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
@@ -64,10 +67,34 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
  */
 public class CreateAttributesTask extends AbstractCompoundTask {
 	CyIdentifiable context;
-	CyNetwork network;
+	CyNetwork argNetwork;
 	Scope scope;
 	DescriptorManager manager = null;
 	String title = null;
+
+	@Tunable(description="Network to operate on", context="nogui")
+	public CyNetwork network;
+
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to create the attributes for", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+	public void setnodeList(NodeList list) {};
+
+	EdgeList edgeList = new EdgeList(null);
+	@Tunable(description="The list of edges to create the attributes for", context="nogui")
+	public EdgeList getedgeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		edgeList.setNetwork(network);
+		return edgeList;
+	}
+	public void setedgeList(EdgeList list) {};
+
 
 	@Tunable(description="Choose Descriptors to Create Attributes")
 	public ListMultipleSelection<Descriptor> descriptors = null;
@@ -82,7 +109,7 @@ public class CreateAttributesTask extends AbstractCompoundTask {
 	                            ChemInfoSettings settings) {
 		super(settings);
 		this.scope = scope;
-		this.network = network;
+		this.argNetwork = network;
 		this.context = context;
 		this.manager = settings.getDescriptorManager();
 
@@ -97,9 +124,15 @@ public class CreateAttributesTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the popup.
  	 */
 	public void run(TaskMonitor taskMonitor) {
-		List<CyIdentifiable> objectList = getObjectList(network, context, scope);
+		if (network == null && argNetwork == null)
+			network = settings.getCurrentNetwork();
+		else if (network == null)
+			network = argNetwork;
+
+		List<CyIdentifiable> objectList = getObjectList(network, context, scope,
+		                                                nodeList.getValue(), edgeList.getValue());
 		String type = "node";
-		if (scope == Scope.ALLEDGES || scope == Scope.SELECTEDEDGES)
+		if (objectList.get(0) instanceof CyEdge)
 			type = "edge";
 
 		List<Descriptor> descList = descriptors.getSelectedValues();

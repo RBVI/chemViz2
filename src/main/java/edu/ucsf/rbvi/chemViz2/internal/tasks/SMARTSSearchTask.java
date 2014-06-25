@@ -40,6 +40,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.TaskMonitor;
@@ -64,12 +67,38 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
 	ChemInfoSettings settings;
 	CompoundTable	compoundTable = null;
 	List<String> columnList = null;
-	CyNetwork network;
+	CyNetwork argNetwork;
 	Scope scope;
-	boolean showTable;
+	boolean haveGUI = true;;
+
+	@Tunable(description="Network to operate on", context="nogui")
+	public CyNetwork network;
+
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to search through", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+	public void setnodeList(NodeList list) {};
+
+	EdgeList edgeList = new EdgeList(null);
+	@Tunable(description="The list of edges to search through", context="nogui")
+	public EdgeList getedgeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		edgeList.setNetwork(network);
+		return edgeList;
+	}
+	public void setedgeList(EdgeList list) {};
 
 	@Tunable(description="Enter the SMARTS search string")
 	public String searchString;
+
+	@Tunable(description="Show the compound table of results", context="nogui")
+	public boolean showTable;
 
 	/**
  	 * Creates the task.
@@ -83,9 +112,26 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
 		this.objectList = selection;
 		this.settings = settings;
 		this.compoundCount = 0;
-		this.network = network;
+		this.argNetwork = network;
 		this.scope = scope;
 		this.showTable = showTable;
+	}
+
+	/**
+	 * Command version of the SMARTS search.
+	 *
+	 * @param network the network we're looking at
+ 	 * @param settings the settings object, which we use to pull the attribute names that contain the compound descriptors
+ 	 */
+	public SMARTSSearchTask(CyNetwork network, ChemInfoSettings settings, boolean haveGUI) {
+		super(settings);
+		this.objectList = null;
+		this.settings = settings;
+		this.compoundCount = 0;
+		this.argNetwork = network;
+		this.scope = null;
+		this.haveGUI = haveGUI;
+		this.showTable = haveGUI;
 	}
 
 	public SMARTSSearchTask(CyNetwork network, List<? extends CyIdentifiable> selection, 
@@ -95,7 +141,7 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
 		this.settings = settings;
 		this.compoundCount = 0;
 		this.columnList = columnList;
-		this.network = network;
+		this.argNetwork = network;
 		this.scope = scope;
 	}
 
@@ -107,8 +153,15 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the table.
  	 */
 	public void run(TaskMonitor taskMonitor) {
+		if (objectList == null)
+			objectList = getObjectList(network, null, scope,
+		                             nodeList.getValue(), edgeList.getValue());
+		if (objectList == null || objectList.size() == 0) {
+			taskMonitor.showMessage(TaskMonitor.Level.ERROR, "Nothing selected to search");
+		}
+
 		String type = "node";
-		if (scope == Scope.ALLEDGES || scope == Scope.SELECTEDEDGES)
+		if (objectList.get(0) instanceof CyEdge)
 			type = "edge";
 
 		List<Compound> cList = getCompounds(objectList, network,
@@ -133,7 +186,7 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
 			if (matches == null || matches.size() == 0)
 				return;
 
-			if (showTable)
+			if (haveGUI && showTable)
 				compoundTable = new CompoundTable(network, matches, columnList, settings);
 		}
 	}

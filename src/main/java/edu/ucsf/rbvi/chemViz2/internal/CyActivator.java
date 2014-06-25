@@ -37,16 +37,21 @@ import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.CompoundManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemInfoSettingsTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateMCSSTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateEdgeMCSSTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateNodeMCSSTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundPopupTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundEdgePopupTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundNodePopupTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundTableTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundEdgeTableTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundNodeTableTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CreateAttributesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CreateEdgeAttributesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CreateNodeAttributesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.HideResultsPanelTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.PaintNodeStructuresTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchEdgesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchNodesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ShowResultsPanelTaskFactory;
@@ -57,6 +62,10 @@ import edu.ucsf.rbvi.chemViz2.internal.view.CustomGraphicsFactory;
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = 
 		LoggerFactory.getLogger(edu.ucsf.rbvi.chemViz2.internal.CyActivator.class);
+
+	// Temporary until 3.2
+	private static String COMMAND_DESCRIPTION = "commandDescription";
+
 	public CyActivator() {
 		super();
 	}
@@ -106,45 +115,55 @@ public class CyActivator extends AbstractCyActivator {
 		// CompoundTable -- needsGUI
 		if (haveGUI) {
 			String menu = "Show Compound Table[1.0]";
-			TaskFactory tableTaskFactory = 
+			TaskFactory tableNodeTaskFactory = 
 				new CompoundNodeTableTaskFactory(settings, Scope.ALLNODES);
-			addMenus(bc, tableTaskFactory, menu, "for all nodes", "show compound table", 
+			addMenus(bc, tableNodeTaskFactory, menu, "for all nodes", null, null,
 			         Scope.ALLNODES, "network", "1.1", false);
 
-			tableTaskFactory = 
+			tableNodeTaskFactory = 
 				new CompoundNodeTableTaskFactory(settings, Scope.SELECTEDNODES);
-			addMenus(bc, tableTaskFactory, menu, "for selected nodes", "show compound table", 
+			addMenus(bc, tableNodeTaskFactory, menu, "for selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "1.2", true);
 
 			CompoundEdgeTableTaskFactory tableEdgeTaskFactory = 
 				new CompoundEdgeTableTaskFactory(settings, Scope.ALLEDGES);
-			addMenus(bc, tableEdgeTaskFactory, menu, "for all edges", "show compound table", 
+			addMenus(bc, tableEdgeTaskFactory, menu, "for all edges", null, null,
 			         Scope.ALLEDGES, "network", "1.3", false);
 
 			tableEdgeTaskFactory = 
 				new CompoundEdgeTableTaskFactory(settings, Scope.SELECTEDEDGES);
-			addMenus(bc, tableEdgeTaskFactory, menu, "for selected edges", "show compound table", 
+			addMenus(bc, tableEdgeTaskFactory, menu, "for selected edges", null, null,
 			         Scope.SELECTEDEDGES, "network", "1.4", true);
+
+			CompoundTableTaskFactory tableTaskFactory = 
+				new CompoundTableTaskFactory(settings);
+			addMenus(bc, tableTaskFactory, null, null, "show compound table", "Displays the compound table",
+			         null, "network", null, false);
 		}
 
 		// CompoundPopup -- needsGUI
 		if (haveGUI) {
 			String menu = "Show Structures[2.0]";
-			TaskFactory popupTaskFactory = new CompoundNodePopupTaskFactory(settings, Scope.ALLNODES);
-			addMenus(bc, popupTaskFactory, menu, "for all nodes", "show compound structures", 
+			TaskFactory popupNodeTaskFactory = new CompoundNodePopupTaskFactory(settings, Scope.ALLNODES);
+			addMenus(bc, popupNodeTaskFactory, menu, "for all nodes", null, null,
 			         Scope.ALLNODES, "network", "2.1", false);
 
-			popupTaskFactory = new CompoundNodePopupTaskFactory(settings, Scope.SELECTEDNODES);
-			addMenus(bc, popupTaskFactory, menu, "for selected nodes", "show compound structures", 
+			popupNodeTaskFactory = new CompoundNodePopupTaskFactory(settings, Scope.SELECTEDNODES);
+			addMenus(bc, popupNodeTaskFactory, menu, "for selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "2.2", true);
 
 			CompoundEdgePopupTaskFactory popupEdgeTaskFactory = new CompoundEdgePopupTaskFactory(settings, Scope.ALLEDGES);
-			addMenus(bc, popupEdgeTaskFactory, menu, "for all edges", "show compound structures", 
+			addMenus(bc, popupEdgeTaskFactory, menu, "for all edges", null, null,
 			         Scope.ALLEDGES, "network", "2.2", false);
 
 			popupEdgeTaskFactory = new CompoundEdgePopupTaskFactory(settings, Scope.SELECTEDEDGES);
-			addMenus(bc, popupEdgeTaskFactory, menu, "for selected edges", "show compound structures", 
+			addMenus(bc, popupEdgeTaskFactory, menu, "for selected edges", null, null,
 			         Scope.SELECTEDEDGES, "network", "2.3", true);
+
+			CompoundPopupTaskFactory popupTaskFactory = 
+				new CompoundPopupTaskFactory(settings);
+			addMenus(bc, popupTaskFactory, null, null, "show compound structures", "Show the 2D structures popup",
+			         null, "network", null, false);
 		}
 
 		// Paint Structures on nodes
@@ -157,12 +176,12 @@ public class CyActivator extends AbstractCyActivator {
 			String menu = "Paint Structures[3.0]";
 			TaskFactory paintTaskFactory = 
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.ALLNODES, false);
-			addMenus(bc, paintTaskFactory, menu, "on all nodes", "paint structures", 
+			addMenus(bc, paintTaskFactory, menu, "on all nodes", "paint structures", "Paint 2D structures on the nodes",
 			         Scope.ALLNODES, "networkAndView", "3.1", false);
 
 			paintTaskFactory = 
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.SELECTEDNODES, false);
-			addMenus(bc, paintTaskFactory, menu, "on selected nodes", "paint structures", 
+			addMenus(bc, paintTaskFactory, menu, "on selected nodes", null, null,
 			         Scope.SELECTEDNODES, "networkAndView", "3.2", true);
 		}
 
@@ -172,12 +191,12 @@ public class CyActivator extends AbstractCyActivator {
 			String menu = "Remove Structures[4.0]";
 			TaskFactory paintTaskFactory = 
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.ALLNODES, true);
-			addMenus(bc, paintTaskFactory, menu, "from all nodes", "remove structures", 
+			addMenus(bc, paintTaskFactory, menu, "from all nodes", "remove structures", "Remove 2D structures from nodes",
 			         Scope.ALLNODES, "networkAndView", "4.1", false);
 
 			paintTaskFactory = 
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.SELECTEDNODES, true);
-			addMenus(bc, paintTaskFactory, menu, "from selected nodes", "remove structures", 
+			addMenus(bc, paintTaskFactory, menu, "from selected nodes", null, null,
 			         Scope.SELECTEDNODES, "networkAndView", "4.2", true);
 		}
 
@@ -185,25 +204,31 @@ public class CyActivator extends AbstractCyActivator {
 		{
 			String menu = "Create Attributes from Compound Descriptors[5.0]";
 
-			TaskFactory createAttributesTaskFactory = 
+			TaskFactory createNodeAttributesTaskFactory = 
 				new CreateNodeAttributesTaskFactory(settings, Scope.ALLNODES);
-			addMenus(bc, createAttributesTaskFactory, menu, "for all nodes", "create attributes", 
+			addMenus(bc, createNodeAttributesTaskFactory, menu, "for all nodes", null, null,
 			         Scope.ALLNODES, "network", "5.1", false);
 
-			createAttributesTaskFactory = 
+			createNodeAttributesTaskFactory = 
 				new CreateNodeAttributesTaskFactory(settings, Scope.SELECTEDNODES);
-			addMenus(bc, createAttributesTaskFactory, menu, "for selected nodes", "create attributes", 
+			addMenus(bc, createNodeAttributesTaskFactory, menu, "for selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "5.2", true);
 
 			CreateEdgeAttributesTaskFactory createAttributesEdgeTaskFactory = 
 				new CreateEdgeAttributesTaskFactory(settings, Scope.ALLEDGES);
-			addMenus(bc, createAttributesEdgeTaskFactory, menu, "for all edges", "create attributes", 
+			addMenus(bc, createAttributesEdgeTaskFactory, menu, "for all edges", null, null,
 			         Scope.ALLEDGES, "network", "5.3", false);
 
 			createAttributesEdgeTaskFactory = 
 				new CreateEdgeAttributesTaskFactory(settings, Scope.SELECTEDEDGES);
-			addMenus(bc, createAttributesEdgeTaskFactory, menu, "for selected edges", "create attributes", 
+			addMenus(bc, createAttributesEdgeTaskFactory, menu, "for selected edges", null, null,
 			         Scope.SELECTEDEDGES, "network", "5.4", true);
+
+			CreateAttributesTaskFactory createAttributesTaskFactory = 
+				new CreateAttributesTaskFactory(settings);
+			addMenus(bc, createAttributesTaskFactory, null, null, "create attributes",
+			         "Create Cytoscape attributes for molecular descriptors",
+			         null, "network", null, false);
 		}
 
 		// Clear cache
@@ -219,32 +244,38 @@ public class CyActivator extends AbstractCyActivator {
 			TaskFactory calculateNodeMCSSTaskFactory = 
 				new CalculateNodeMCSSTaskFactory(settings, groupManager, 
 				                                 groupFactory, haveGUI, false, Scope.ALLNODES);
-			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "for all nodes", "calculate mcss", 
+			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "for all nodes", null, null,
 			         Scope.ALLNODES, "network", "6.1", false);
 
 			calculateNodeMCSSTaskFactory = 
 				new CalculateNodeMCSSTaskFactory(settings, groupManager, groupFactory, 
 				                                 haveGUI, false, Scope.SELECTEDNODES);
-			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "for selected nodes", "calculate mcss", 
+			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "for selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "6.2", false);
 
 			calculateNodeMCSSTaskFactory = 
 				new CalculateNodeMCSSTaskFactory(settings, groupManager, groupFactory, 
 				                                 haveGUI, true, Scope.SELECTEDNODES);
-			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "and group selected nodes", "calculate mcss", 
+			addMenus(bc, calculateNodeMCSSTaskFactory, menu, "and group selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "6.3", false);
 
 			CalculateEdgeMCSSTaskFactory calculateEdgeMCSSTaskFactory = 
 				new CalculateEdgeMCSSTaskFactory(settings, groupManager, groupFactory, 
 				                                 haveGUI, false, Scope.ALLEDGES);
-			addMenus(bc, calculateEdgeMCSSTaskFactory, menu, "for all edges", "calculate mcss", 
+			addMenus(bc, calculateEdgeMCSSTaskFactory, menu, "for all edges", null, null,
 			         Scope.ALLEDGES, "network", "6.4", false);
 
 			calculateEdgeMCSSTaskFactory = 
 				new CalculateEdgeMCSSTaskFactory(settings, groupManager, groupFactory, 
 				                                 haveGUI, false, Scope.SELECTEDEDGES);
-			addMenus(bc, calculateEdgeMCSSTaskFactory, menu, "for selected edges", "calculate mcss", 
+			addMenus(bc, calculateEdgeMCSSTaskFactory, menu, "for selected edges", null, null,
 			         Scope.SELECTEDEDGES, "network", "6.5", true);
+
+			CalculateMCSSTaskFactory calculateMCSSTaskFactory = 
+				new CalculateMCSSTaskFactory(settings, groupManager, groupFactory, haveGUI);
+			addMenus(bc, calculateMCSSTaskFactory, null, null, "calculate mcss", 
+			         "Calculates the Maximum Common SubStructure for a set of nodes or edges",
+			         null, "network", "6.4", false);
 		}
 
 		// Search
@@ -252,23 +283,28 @@ public class CyActivator extends AbstractCyActivator {
 			String menu = "Search using SMARTS[7.0]";
 			TaskFactory searchNodesTaskFactory = 
 				new SearchNodesTaskFactory(settings, haveGUI, Scope.ALLNODES);
-			addMenus(bc, searchNodesTaskFactory, menu, "through all nodes", "search", 
+			addMenus(bc, searchNodesTaskFactory, menu, "through all nodes", null, null,
 			         Scope.ALLNODES, "network", "7.1", false);
 
 			searchNodesTaskFactory = 
 				new SearchNodesTaskFactory(settings, haveGUI, Scope.SELECTEDNODES);
-			addMenus(bc, searchNodesTaskFactory, menu, "through selected nodes", "search", 
+			addMenus(bc, searchNodesTaskFactory, menu, "through selected nodes", null, null,
 			         Scope.SELECTEDNODES, "network", "7.2", true);
 
 			SearchEdgesTaskFactory searchEdgesTaskFactory = 
 				new SearchEdgesTaskFactory(settings, haveGUI, Scope.ALLEDGES);
-			addMenus(bc, searchEdgesTaskFactory, menu, "through all edges", "search", 
+			addMenus(bc, searchEdgesTaskFactory, menu, "through all edges", null, null,
 			         Scope.ALLEDGES, "network", "7.3", false);
 
 			searchEdgesTaskFactory = 
 				new SearchEdgesTaskFactory(settings, haveGUI, Scope.SELECTEDEDGES);
-			addMenus(bc, searchEdgesTaskFactory, menu, "through selected edges", "search", 
+			addMenus(bc, searchEdgesTaskFactory, menu, "through selected edges", null, null,
 			         Scope.SELECTEDEDGES, "network", "7.4", true);
+
+			SearchTaskFactory searchTaskFactory = 
+				new SearchTaskFactory(settings, haveGUI);
+			addMenus(bc, searchTaskFactory, null, null, "search", "Search structures using SMARTS",
+			         null, "network", null, false);
 		}
 
 		// Create Similarity network
@@ -281,14 +317,21 @@ public class CyActivator extends AbstractCyActivator {
 			TaskFactory similarityTaskFactory = 
 				new SimilarityNetworkTaskFactory(settings, viewFactory, networkManager, 
 				                                 networkViewManager, vmm, true, Scope.ALLNODES);
-			addMenus(bc, similarityTaskFactory, menu, "using all nodes", "create smilarity", 
+			addMenus(bc, similarityTaskFactory, menu, "using all nodes", null, null,
 			         Scope.ALLNODES, "networkAndView", "8.1", false);
 
 			similarityTaskFactory = 
 				new SimilarityNetworkTaskFactory(settings, viewFactory, networkManager, 
 				                                 networkViewManager, vmm, true, Scope.SELECTEDNODES);
-			addMenus(bc, similarityTaskFactory, menu, "using selected nodes", "create smilarity", 
+			addMenus(bc, similarityTaskFactory, menu, "using selected nodes", null,  null,
 			         Scope.SELECTEDNODES, "networkAndView", "8.2", true);
+
+			TaskFactory similarityCommandTaskFactory = 
+				new SimilarityNetworkTaskFactory(settings, viewFactory, networkManager, 
+				                                 networkViewManager, vmm, true, null);
+			addMenus(bc, similarityCommandTaskFactory, null, null, "create similarity", 
+			         "Create a similarity network from a set of nodes",
+			         null, "networkAndView", null, false);
 		}
 
 		// ChemVizResultsPanel -- needsGUI
@@ -299,6 +342,7 @@ public class CyActivator extends AbstractCyActivator {
 			showResultsProps.setProperty(TITLE, "Show Results Panel");
 			showResultsProps.setProperty(COMMAND, "show results");
 			showResultsProps.setProperty(COMMAND_NAMESPACE, "chemviz");
+			showResultsProps.setProperty(COMMAND_DESCRIPTION, "Enable chemViz results panel");
 			showResultsProps.setProperty(IN_MENU_BAR, "true");
 			showResultsProps.setProperty(MENU_GRAVITY, "20.0");
 			TaskFactory showResultsTaskFactory = new ShowResultsPanelTaskFactory(settings);
@@ -310,6 +354,7 @@ public class CyActivator extends AbstractCyActivator {
 			hideResultsProps.setProperty(TITLE, "Hide Results Panel");
 			hideResultsProps.setProperty(COMMAND, "hide results");
 			hideResultsProps.setProperty(COMMAND_NAMESPACE, "chemviz");
+			hideResultsProps.setProperty(COMMAND_DESCRIPTION, "Hide chemViz results panel");
 			hideResultsProps.setProperty(IN_MENU_BAR, "true");
 			hideResultsProps.setProperty(MENU_GRAVITY, "20.0");
 			TaskFactory hideResultsTaskFactory = new HideResultsPanelTaskFactory(settings);
@@ -325,6 +370,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsMenuProperties.setProperty(TITLE, "Settings...");
 		settingsMenuProperties.setProperty(COMMAND, "settings");
 		settingsMenuProperties.setProperty(COMMAND_NAMESPACE, "chemviz");
+		settingsMenuProperties.setProperty(COMMAND_DESCRIPTION, "Set chemViz properties");
 		settingsMenuProperties.setProperty(INSERT_SEPARATOR_BEFORE, "true");
 		settingsMenuProperties.setProperty(IN_MENU_BAR, "true");
 		settingsMenuProperties.setProperty(MENU_GRAVITY, "110.0");
@@ -336,34 +382,47 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	private void addMenus(BundleContext bc, TaskFactory factory, String menu, String title, 
-	                      String command, Scope scope, String enable, String gravity, 
+	                      String command, String description, Scope scope, String enable, String gravity, 
 	                      boolean exclusive) {
 		String baseMenu = "Apps.Cheminformatics Tools";
 		Properties properties = new Properties();
-		properties.setProperty(PREFERRED_MENU, baseMenu+"."+menu);
-		properties.setProperty(TITLE, title);
-		properties.setProperty(COMMAND, command);
-		properties.setProperty(ENABLE_FOR, enable);
-		properties.setProperty(IN_MENU_BAR, "true");
-		properties.setProperty(COMMAND_NAMESPACE, "chemviz");
-		properties.setProperty(MENU_GRAVITY, gravity);
+
+		if (menu != null) {
+			properties.setProperty(PREFERRED_MENU, baseMenu+"."+menu);
+			properties.setProperty(TITLE, title);
+			properties.setProperty(ENABLE_FOR, enable);
+			properties.setProperty(IN_MENU_BAR, "true");
+			properties.setProperty(MENU_GRAVITY, gravity);
+		}
+		if (command != null) {
+			properties.setProperty(COMMAND, command);
+			properties.setProperty(COMMAND_DESCRIPTION, description);
+			properties.setProperty(COMMAND_NAMESPACE, "chemviz");
+		}
 
 		if (enable.equals("networkAndView"))
 			registerService(bc, factory, NetworkViewTaskFactory.class, properties);
 		else
 			registerService(bc, factory, NetworkTaskFactory.class, properties);
+
 		// If exclusive, we need to create a new properties and restructure
 		// the menus.  This is to avoid slide of menus with a single choice...
 		if (exclusive) {
 			properties = new Properties();
 			// These are all the same
-			properties.setProperty(COMMAND, command);
-			properties.setProperty(ENABLE_FOR, enable);
-			properties.setProperty(IN_MENU_BAR, "true");
-			properties.setProperty(COMMAND_NAMESPACE, "chemviz");
-			properties.setProperty(MENU_GRAVITY, gravity); // We can use the same gravity
-			properties.setProperty(PREFERRED_MENU, baseMenu);
-			properties.setProperty(TITLE, makeTitle(menu, title));
+			if (menu != null) {
+				properties.setProperty(ENABLE_FOR, enable);
+				properties.setProperty(IN_MENU_BAR, "true");
+				properties.setProperty(MENU_GRAVITY, gravity); // We can use the same gravity
+				properties.setProperty(PREFERRED_MENU, baseMenu);
+				properties.setProperty(TITLE, makeTitle(menu, title));
+			}
+
+			if (command != null) {
+				properties.setProperty(COMMAND, command);
+				properties.setProperty(COMMAND_DESCRIPTION, description);
+				properties.setProperty(COMMAND_NAMESPACE, "chemviz");
+			}
 		}
 		if (scope == Scope.SELECTEDNODES)
 			registerService(bc, factory, NodeViewTaskFactory.class, properties);

@@ -48,6 +48,9 @@ import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -55,7 +58,9 @@ import org.cytoscape.model.CyRow;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.Tunable;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
@@ -76,19 +81,46 @@ import org.openscience.smsd.mcss.TaskUpdater;
  * object passed in its constructor and provides some methods to allow
  * the caller to fetch the compounds when the task is complete.
  */
-public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdater {
+public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdater, ObservableTask {
 	ChemInfoSettings settings;
 	CyGroupManager groupManager;
 	CyGroupFactory groupFactory;
 	List<? extends CyIdentifiable> objectList;
-	CyNetwork network;
-	String type;
+	CyNetwork argNetwork;
 	List<Compound> compoundList;
 	IAtomContainer mcss = null;
-	boolean showResult = false;
-	boolean createGroup = false;
 	boolean calculationComplete = false;
+	boolean haveGUI = true;
 	static private Logger logger = LoggerFactory.getLogger(CalculateMCSSTask.class);
+
+	@Tunable(description="Network to operate on", context="nogui")
+	public CyNetwork network;
+
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to calculate the MCSS for", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+	public void setnodeList(NodeList list) {};
+
+	EdgeList edgeList = new EdgeList(null);
+	@Tunable(description="The list of edges to calculate the MCSS for", context="nogui")
+	public EdgeList getedgeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		edgeList.setNetwork(network);
+		return edgeList;
+	}
+	public void setedgeList(EdgeList list) {};
+
+	@Tunable(description="Show results in a popup window", context="nogui")
+	public boolean showResult = false;
+
+	@Tunable(description="Create a group of selected nodes", context="nogui")
+	public boolean createGroup = false;
 
 	/**
  	 * Creates the task.
@@ -99,17 +131,26 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 	                         boolean showResult, boolean createGroup) {
 		super(settings);
 		this.objectList = gObjList;
-		
-		if (gObjList.get(0) instanceof CyNode)
-			type = "node";
-		else
-			type = "edge";
+
 		this.settings = settings;
 		this.showResult = showResult;
 		this.createGroup = createGroup;
 		this.groupManager = groupManager;
 		this.groupFactory = groupFactory;
-		this.network = network;
+		this.argNetwork = network;
+	}
+
+	// Used primarily for command version
+  public CalculateMCSSTask(CyNetwork network, ChemInfoSettings settings, 
+	                         CyGroupManager groupManager, CyGroupFactory groupFactory, boolean haveGUI) {
+		super(settings);
+		this.objectList = null;
+
+		this.settings = settings;
+		this.groupManager = groupManager;
+		this.groupFactory = groupFactory;
+		this.argNetwork = network;
+		this.haveGUI = haveGUI;
 	}
 
 	public String getMCSSSmiles() {
@@ -125,8 +166,26 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 		this.monitor = taskMonitor;
 		if (monitor != null) monitor.setTitle("Calculating MCSS");
 
+		if (network == null && argNetwork == null)
+			network = settings.getCurrentNetwork();
+		else if (network == null)
+			network = argNetwork;
+
+
 		int maxThreads = settings.getMaxThreads();
 		setStatus("Getting compounds");
+		if (objectList == null)
+			objectList = getObjectList(network, null, null,
+			                           nodeList.getValue(), edgeList.getValue());
+
+		if (objectList == null || objectList.size() == 0) {
+			monitor.showMessage(TaskMonitor.Level.ERROR, "Nothing selected");
+			return;
+		}
+		String type = "node";
+		if (objectList.get(0) instanceof CyEdge)
+			type = "edge";
+
 		compoundList = getCompounds(objectList, network,
                                 settings.getCompoundAttributes(type,AttriType.smiles),
                                 settings.getCompoundAttributes(type,AttriType.inchi), maxThreads);
@@ -146,7 +205,7 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 			mcss = calculatedMCSS.iterator().next();
 
 		calculationComplete = true;	
-		if (showResult) {
+		if (haveGUI && showResult) {
 			String mcssSmiles = getMCSSSmiles();
 			String label = mcssSmiles;
 			Compound c = new Compound(settings, null, null, null, mcssSmiles, mcss, AttriType.smiles);
@@ -215,6 +274,11 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 	public void setTotalCount(int count) {
 		totalObjects = count;
 		objectCount = 0;
+	}
+
+	public <R> R getResults(Class<? extends R> type) {
+		// Right now, we only support SMILES strings as a return
+		return (R)getMCSSSmiles();
 	}
 
 	public synchronized void incrementCount() {

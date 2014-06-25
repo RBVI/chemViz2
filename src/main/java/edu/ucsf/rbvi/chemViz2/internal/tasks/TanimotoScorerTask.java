@@ -49,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyIdentifiable;
@@ -66,6 +68,7 @@ import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.Tunable;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
@@ -81,16 +84,32 @@ import edu.ucsf.rbvi.chemViz2.internal.similarity.CDKTanimotoScore;
  */
 public class TanimotoScorerTask extends AbstractCompoundTask {
 	List<CyNode> objectList;
-	CyNetwork network;
+	CyNetwork argNetwork;
 	CyNetworkViewFactory networkViewFactory;
 	CyNetworkViewManager networkViewManager;
 	CyNetworkManager networkManager;
 	CyNetworkView origNetworkView;
 	ChemInfoSettings settings;
 	VisualMappingManager visualMappingManager;
-	boolean createNewNetwork = false;
 	boolean canceled = false;
 	static private Logger logger = LoggerFactory.getLogger(TanimotoScorerTask.class);
+
+	@Tunable(description="Network to operate on", context="nogui")
+	public CyNetwork network;
+
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to use for the similarity calculation", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+	public void setnodeList(NodeList nl) {}
+
+	@Tunable(description="Create a new network from the calculated edges", context="nogui")
+	public boolean createNewNetwork = false;
+	
 
 	/**
  	 * Creates the task.
@@ -106,7 +125,7 @@ public class TanimotoScorerTask extends AbstractCompoundTask {
 	                          VisualMappingManager visualManager,
 	                          ChemInfoSettings settings, boolean newNetwork) {
 		super(settings);
-		this.network = networkView.getModel();
+		this.argNetwork = networkView.getModel();
 		this.objectList = objectList;
 		this.settings = settings;
 		this.createNewNetwork = newNetwork;
@@ -115,8 +134,6 @@ public class TanimotoScorerTask extends AbstractCompoundTask {
 		this.visualMappingManager = visualManager;
 		this.networkViewManager = networkViewManager;
 		this.networkManager = networkManager;
-		if (objectList == null || objectList.size() == 0) return;
-
 	}
 
 	public String getTitle() {
@@ -128,6 +145,28 @@ public class TanimotoScorerTask extends AbstractCompoundTask {
  	 */
 	public void run(TaskMonitor taskMonitor) {
 		CyNetwork newNetwork = null;
+
+		if (network == null && argNetwork == null)
+			network = settings.getCurrentNetwork();
+		else if (network == null)
+			network = argNetwork;
+
+		if (objectList == null) {
+			List<CyIdentifiable> objList = getObjectList(network, null, null, 
+			                                             nodeList.getValue(), null);
+			if (objList != null && objList.size() > 0) {
+				objectList = new ArrayList<CyNode>(objList.size());
+				for (CyIdentifiable id: objList) {
+					if (id instanceof CyNode)
+						objectList.add((CyNode)id);
+				}
+			}
+		}
+
+		if (objectList == null || objectList.size() == 0) {
+			monitor.showMessage(TaskMonitor.Level.ERROR, "Nothing selected");
+			return;
+		}
 
 		int maxThreads = settings.getMaxThreads();
 		int nThreads = Runtime.getRuntime().availableProcessors()-1;

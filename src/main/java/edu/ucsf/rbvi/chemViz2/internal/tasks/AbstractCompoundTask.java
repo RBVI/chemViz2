@@ -217,9 +217,18 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 		return cList;
 	}
 
-	protected List<CyIdentifiable> getObjectList(CyNetwork network, CyIdentifiable context, Scope scope) {
+	protected List<CyIdentifiable> getObjectList(CyNetwork network, CyIdentifiable context, Scope scope,
+	                                             List<CyNode> nodeList, List<CyEdge> edgeList) {
 		if (network == null) return null;
 		List<CyIdentifiable> objectList = new ArrayList<CyIdentifiable>();
+		if (nodeList != null && nodeList.size() > 0) {
+			objectList.addAll(nodeList);
+			return objectList;
+		} else if (edgeList != null && edgeList.size() > 0) {
+			objectList.addAll(edgeList);
+			return objectList;
+		}
+
 		switch (scope) {
 		case ALLNODES:
 			objectList.addAll(network.getNodeList());

@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -54,6 +56,7 @@ import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.view.vizmap.mappings.PassthroughMapping;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.Tunable;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
@@ -67,6 +70,14 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
  * a 2D image of all of the compuonds defined.
  */
 public class PaintStructuresTask extends AbstractCompoundTask {
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to show the compound table for", context="nogui")
+	public NodeList getnodeList() {
+		nodeList.setNetwork(networkView.getModel());
+		return nodeList;
+	}
+	public void setnodeList(NodeList list) {};
+
 	CyIdentifiable context;
 	CyNetworkView networkView;
 	Scope scope;
@@ -106,7 +117,7 @@ public class PaintStructuresTask extends AbstractCompoundTask {
  	 */
 	public void run(TaskMonitor taskMonitor) {
 		CyNetwork network = networkView.getModel();
-		List<CyIdentifiable> objectList = getObjectList(network, context, scope);
+		List<CyIdentifiable> objectList = getObjectList(network, context, scope, nodeList.getValue(), null);
 		String type = "node";
 
 		List<Compound> compoundList = getCompounds(objectList, network,

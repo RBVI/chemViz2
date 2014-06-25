@@ -38,9 +38,13 @@ package edu.ucsf.rbvi.chemViz2.internal.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cytoscape.command.util.EdgeList;
+import org.cytoscape.command.util.NodeList;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.Tunable;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
@@ -54,8 +58,31 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
  * a 2D image of all of the compuonds defined.
  */
 public class CompoundPopupTask extends AbstractCompoundTask {
+	@Tunable(description="Network to operate on", context="nogui")
+	public CyNetwork network;
+
+	NodeList nodeList = new NodeList(null);
+	@Tunable(description="The list of nodes to show the compound popup for", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+	public void setnodeList(NodeList list) {};
+
+	EdgeList edgeList = new EdgeList(null);
+	@Tunable(description="The list of edges to show the compound popup for", context="nogui")
+	public EdgeList getedgeList() {
+		if (network == null)
+			network = settings.getCurrentNetwork();
+		edgeList.setNetwork(network);
+		return edgeList;
+	}
+	public void setedgeList(EdgeList list) {};
+
 	CyIdentifiable context;
-	CyNetwork network;
+	CyNetwork argNetwork;
 	String label;
 	Scope scope;
 	CompoundPopup compoundPopup = null;
@@ -71,7 +98,7 @@ public class CompoundPopupTask extends AbstractCompoundTask {
 	                         ChemInfoSettings settings) {
 		super(settings);
 		this.scope = scope;
-		this.network = network;
+		this.argNetwork = network;
 		this.context = context;
 		this.label = label; // Overrides settings.getLabelAttribute()
 	}
@@ -84,11 +111,19 @@ public class CompoundPopupTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the popup.
  	 */
 	public void run(TaskMonitor taskMonitor) {
-		String type = "node";
-		if (scope == Scope.ALLEDGES || scope == Scope.SELECTEDEDGES)
-			type = "edge";
+		if (network == null && argNetwork == null)
+			network = settings.getCurrentNetwork();
+		else if (network == null)
+			network = argNetwork;
 
-		List<CyIdentifiable> objectList = getObjectList(network, context, scope);
+		List<CyIdentifiable> objectList = getObjectList(network, context, scope,
+		                                                nodeList.getValue(), edgeList.getValue());
+		if (objectList == null || objectList.size() == 0)
+			return;
+
+		String type = "node";
+		if (objectList.get(0) instanceof CyEdge)
+			type = "edge";
 
 		if (label == null && objectList != null && objectList.size() > 0)
 			this.label = settings.getLabelAttribute();

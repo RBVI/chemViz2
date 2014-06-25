@@ -71,9 +71,11 @@ public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory
 		List<CyNode> selectedNodes;
 		if (scope == Scope.ALLNODES)
 			selectedNodes = networkView.getModel().getNodeList();
-		else {
+		else if (scope == Scope.SELECTEDNODES) {
 			selectedNodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
-		}
+		} else
+			selectedNodes = null; // Commands
+
 		return new TaskIterator(new TanimotoScorerTask(networkView, selectedNodes, viewFactory,
 		                                               networkManager, networkViewManager, vmm, settings, newNetwork));
 	}
