@@ -146,7 +146,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	public boolean hasEdgeCompounds(Collection<CyEdge> edgeSet) {
 		if (network == null) return false;
 		CyTable edgeTable = network.getDefaultEdgeTable();
-		List<String> attrsFound = getMatchingAttributes(edgeTable, getNodeCompoundAttributes());
+		List<String> attrsFound = getMatchingAttributes(edgeTable, getEdgeCompoundAttributes());
 		Collection idSet = edgeSet;
 		return hasCompounds(idSet, edgeTable, attrsFound);
 	}
