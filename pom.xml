@@ -111,6 +111,13 @@
 				<enabled>true</enabled>
 			</releases>
 		</repository>
+		<repository>
+			<id>ebi-repo</id>
+			<url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
 	</repositories>
 
 	<dependencies>
