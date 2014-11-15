@@ -159,7 +159,7 @@ public class Compound {
 		if (iMolecule3D == null) {
 			try {
 				ModelBuilder3D mb3d = 
-					ModelBuilder3D.getInstance(TemplateHandler3D.getInstance(), "mm2");
+					ModelBuilder3D.getInstance(TemplateHandler3D.getInstance(), "mm2", SilentChemObjectBuilder.getInstance());
 				iMolecule3D = mb3d.generate3DCoordinates(CDKUtils.addh(iMolecule), true);
 			} catch (Exception e) {
 				logger.warn("Unable to calculate 3D coordinates: "+e.getMessage());
@@ -170,7 +170,7 @@ public class Compound {
 	}
 
 	public void layoutStructure() {
-		if (!laidOut) {
+		if (!laidOut && iMolecule != null) {
 			try {
 				iMolecule = CDKUtils.layoutMolecule(iMolecule);
 				laidOut = true;
@@ -247,6 +247,7 @@ public class Compound {
 			// Convert to smiles 
 			this.smilesStr = convertInchiToSmiles(moleculeString);
 		} else {
+			// Strip :xx's?
 			if (moleculeString != null && moleculeString.length() > 0) {
 				// Strip any blanks in the string
 				this.smilesStr = moleculeString.replaceAll(" ", "");

@@ -11,6 +11,8 @@ import org.cytoscape.model.CyTable;
 
 public class TableUtils {
 	static public String getName(CyNetwork network, CyIdentifiable id) {
+		if (network == null || id == null)
+			return null;
 		CyRow row = network.getRow(id);
 		if (row != null)
 			return row.get(CyNetwork.NAME, String.class);

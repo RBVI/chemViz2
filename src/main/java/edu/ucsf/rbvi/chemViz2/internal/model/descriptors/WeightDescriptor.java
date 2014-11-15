@@ -2,7 +2,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model.descriptors;
 
 import java.util.List;
 
-import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -33,7 +33,7 @@ public class WeightDescriptor implements Descriptor <Double> {
     double mass = 0.0;
     for (IIsotope isotope : mfa.isotopes()) {
     	try {
-    		IIsotope isotope2 = IsotopeFactory.getInstance(mfa.getBuilder()).getMajorIsotope(isotope.getSymbol());
+    		IIsotope isotope2 = Isotopes.getInstance().getMajorIsotope(isotope.getSymbol());
     		mass += isotope2.getMassNumber() * mfa.getIsotopeCount(isotope);
     	} catch (Exception e) {
 				logger.warn("Unable to calculate weight: "+e.getMessage());

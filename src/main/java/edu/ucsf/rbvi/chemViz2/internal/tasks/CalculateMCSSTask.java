@@ -47,7 +47,6 @@ import java.util.logging.Level;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.cytoscape.command.util.EdgeList;
 import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyEdge;
@@ -66,14 +65,13 @@ import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
+import edu.ucsf.rbvi.chemViz2.internal.smsd.mcss.JobType;
+import edu.ucsf.rbvi.chemViz2.internal.smsd.mcss.MCSS;
+import edu.ucsf.rbvi.chemViz2.internal.smsd.mcss.TaskUpdater;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
 
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesGenerator;
-
-import org.openscience.smsd.mcss.JobType;
-import org.openscience.smsd.mcss.MCSS;
-import org.openscience.smsd.mcss.TaskUpdater;
 
 
 /**
