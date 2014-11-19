@@ -64,6 +64,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -106,6 +107,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 	private Map<Component, Compound> imageMap;
 	private JScrollPane scrollPane;
 	private JPanel outerPanel;
+	private JSplitPane splitPane;
 	private OpenBrowser openBrowser;
 
 	private static final int LABEL_HEIGHT = 20;
@@ -186,7 +188,12 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 	@Override
 	public void componentResized(ComponentEvent e) {
-		if (!(e.getComponent() instanceof JPanel))
+		if (e.getComponent() instanceof JSplitPane) {
+			JSplitPane splitPane = (JSplitPane)e.getComponent();
+			return;
+		}
+
+		if (!(e.getComponent() instanceof JPanel)) 
 			return;
 
 		JPanel panel = (JPanel)e.getComponent();
@@ -262,7 +269,12 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			// If we have multiple, show the structures
 			addGrid(width, structureCount);
 		}
+		this.revalidate();
 		this.repaint();
+		if (compoundList.size() == 1) {
+			splitPane.setDividerLocation(0.5);
+			this.revalidate();
+		}
 	}
 
 	private void addGrid(int width, int structureCount) {
@@ -307,10 +319,12 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 	static String PUBCHEM = "http://pubchem.ncbi.nlm.nih.gov/search/search.cgi?cmd=search&q_type=dt&simp_schtp=fs&q_data=";
 	static String CHEMSPIDER = "http://www.chemspider.com/smiles?";
-	private void addInfoPanel(int width, Compound compound) {
 
-		BoxLayout bl = new BoxLayout(outerPanel, BoxLayout.Y_AXIS);
-		outerPanel.setLayout(bl);
+	private void addInfoPanel(int width, Compound compound) {
+    outerPanel.setLayout(new BorderLayout());
+		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
+		splitPane.addComponentListener(this);
+		splitPane.setResizeWeight(0.5);
 
 		{
 			JPanel structurePanel = new JPanel();
@@ -326,10 +340,11 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			Image img = compound.getImage(width, width, Color.WHITE);
 			structurePanel.add(new JLabel(new ImageIcon(img)), BorderLayout.CENTER);
 			imageMap.put(structurePanel, compound);
+			structurePanel.setMinimumSize(new Dimension(100, 100+LABEL_HEIGHT));
 			structurePanel.setSize(width, width+LABEL_HEIGHT);
+			structurePanel.setPreferredSize(new Dimension(width, width+LABEL_HEIGHT));
 			structurePanel.addComponentListener(this);
-
-			outerPanel.add(structurePanel);
+			splitPane.setTopComponent(structurePanel);
 		}
 
 		// Finally, add the table
@@ -354,7 +369,8 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		outerPanel.add(scrollPane);
+		splitPane.setBottomComponent(scrollPane);
+		outerPanel.add(BorderLayout.CENTER, splitPane);
 	}
 
 	private String getLabel(Compound compound, String labelAttribute) {
