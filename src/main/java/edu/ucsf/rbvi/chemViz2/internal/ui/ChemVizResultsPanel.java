@@ -200,8 +200,8 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		Component[] components = panel.getComponents();
 
 		// Get our new width
-		int width = panel.getWidth();
-		int height = panel.getHeight();
+		int width = panel.getWidth()-10;
+		int height = panel.getHeight()-10;
 		JLabel labelComponent = null;
 
 		if (compoundList.size() > 1) {
@@ -216,7 +216,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			else
 				width = height;
 
-			if (width > 300) {
+			if (width > 310) {
 				width = 300;
 				height = 300;
 			}
@@ -341,8 +341,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			structurePanel.add(new JLabel(new ImageIcon(img)), BorderLayout.CENTER);
 			imageMap.put(structurePanel, compound);
 			structurePanel.setMinimumSize(new Dimension(100, 100+LABEL_HEIGHT));
-			structurePanel.setSize(width, width+LABEL_HEIGHT);
-			structurePanel.setPreferredSize(new Dimension(width, width+LABEL_HEIGHT));
+			structurePanel.setSize(width, width+LABEL_HEIGHT+10);
 			structurePanel.addComponentListener(this);
 			splitPane.setTopComponent(structurePanel);
 		}
