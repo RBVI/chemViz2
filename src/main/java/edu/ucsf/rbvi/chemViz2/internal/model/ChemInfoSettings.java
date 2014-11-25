@@ -190,6 +190,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	// in our current network.  If a new column is created
 	// in a different network, we'll pick that up in the SetCurrentNetworkListener
 	public void handleEvent(ColumnCreatedEvent e) {
+		if (this.network == null) return;
 		if (e.getSource().equals(this.network.getDefaultEdgeTable()) ||
 		    e.getSource().equals(this.network.getDefaultNodeTable())) {
 			possibleAttributes = null;
