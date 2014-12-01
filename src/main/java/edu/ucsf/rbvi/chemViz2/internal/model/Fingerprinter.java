@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 
+import org.openscience.cdk.fingerprint.CircularFingerprinter;
 import org.openscience.cdk.fingerprint.EStateFingerprinter;
 import org.openscience.cdk.fingerprint.ExtendedFingerprinter;
 import org.openscience.cdk.fingerprint.GraphOnlyFingerprinter;
@@ -43,30 +44,45 @@ import org.openscience.cdk.fingerprint.MACCSFingerprinter;
 import org.openscience.cdk.fingerprint.SubstructureFingerprinter;
 
 public enum Fingerprinter {
-	CDK("CDK", org.openscience.cdk.fingerprint.Fingerprinter.class),
-	ESTATE("E-State", EStateFingerprinter.class),
-	EXTENDED("Extended CDK", ExtendedFingerprinter.class),
-	GRAPHONLY("Graph Only", GraphOnlyFingerprinter.class),
-	HYBRIDIZATION("Hybridization", HybridizationFingerprinter.class),
-	KLEKOTAROTH("Klekota & Roth", KlekotaRothFingerprinter.class),
-	MACCS("MACCS", MACCSFingerprinter.class),
-	PUBCHEM("Pubchem", PubchemFingerprinterWrapper.class),
-	SUBSTRUCTURE("Substructure bitset", SubstructureFingerprinter.class);
+	CDK("CDK", org.openscience.cdk.fingerprint.Fingerprinter.class, null, null),
+	ECFP4("ECFP4", CircularFingerprinter.class, int.class, CircularFingerprinter.CLASS_ECFP4),
+	ECFP6("ECFP6", CircularFingerprinter.class, int.class, CircularFingerprinter.CLASS_ECFP6),
+	ESTATE("E-State", EStateFingerprinter.class, null, null),
+	EXTENDED("Extended CDK", ExtendedFingerprinter.class, null, null),
+	FCFP4("FCFP4", CircularFingerprinter.class, int.class, CircularFingerprinter.CLASS_FCFP4),
+	FCFP6("FCFP6", CircularFingerprinter.class, int.class, CircularFingerprinter.CLASS_FCFP6),
+	GRAPHONLY("Graph Only", GraphOnlyFingerprinter.class, null, null),
+	HYBRIDIZATION("Hybridization", HybridizationFingerprinter.class, null, null),
+	KLEKOTAROTH("Klekota & Roth", KlekotaRothFingerprinter.class, null, null),
+	MACCS("MACCS", MACCSFingerprinter.class, null, null),
+	PUBCHEM("Pubchem", PubchemFingerprinterWrapper.class, null, null),
+	SUBSTRUCTURE("Substructure bitset", SubstructureFingerprinter.class, null, null);
 
   private String name;
   private Class fingerprinter;
+  private Class argClass;
+  private Object argument;
 	private static Logger logger = LoggerFactory.getLogger(edu.ucsf.rbvi.chemViz2.internal.model.Fingerprinter.class);
-  private Fingerprinter(String str, Class fp) { 
+  private Fingerprinter(String str, Class fp, Class argClass, Object arg) { 
 		name=str; 
 		fingerprinter = fp;
+		argument = arg;
+		argClass = argClass;
 	}
   public String toString() { return name; }
   public String getName() { return name; }
+  public Object getArg() { return argument; }
+  public Class getArgClass() { return argClass; }
   public IFingerprinter getFingerprinter() { 
 		IFingerprinter i; 
 		try {
-			Constructor<IFingerprinter> c = fingerprinter.getConstructor();
-			i = c.newInstance(); 
+			if (argClass == null) {
+				Constructor<IFingerprinter> c = fingerprinter.getConstructor();
+				i = c.newInstance(); 
+			} else {
+				Constructor<IFingerprinter> c = fingerprinter.getConstructor(argClass);
+				i = c.newInstance(argument);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.warn("Unable to create fingerprinter instance for "+getName()+": "+e);

@@ -68,7 +68,10 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	private static final String defaultSmilesAttributes[] = {"SMILES","Compounds","Compound","Smiles","smiles"};
 	private static final String defaultInCHIAttributes[] = {"InCHI","inchi","InChi","InChI"};
 	private static final Fingerprinter fingerprintList[] = {Fingerprinter.PUBCHEM, Fingerprinter.MACCS,
-	                                                        Fingerprinter.CDK, Fingerprinter.ESTATE, Fingerprinter.EXTENDED, 
+	                                                        Fingerprinter.CDK, Fingerprinter.ECFP4,
+																													Fingerprinter.ECFP6,
+																													Fingerprinter.ESTATE, Fingerprinter.EXTENDED, 
+																													Fingerprinter.FCFP4, Fingerprinter.FCFP6,
 	                                                        Fingerprinter.GRAPHONLY, Fingerprinter.HYBRIDIZATION, 
 	                                                        Fingerprinter.KLEKOTAROTH, Fingerprinter.SUBSTRUCTURE};
 	private List<String> possibleAttributes = null;
