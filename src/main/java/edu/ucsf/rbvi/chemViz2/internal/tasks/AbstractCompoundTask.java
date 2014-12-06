@@ -139,15 +139,24 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 		
 		List<Compound> cList = new ArrayList();
 
-		// Get the compound list from each attribute
+		// Get the compound list from each attribute, but we want to give preference
+		// to SMILES.  Only if we don't have SMILES do we want to add InChI attributes
+		boolean foundSMILES = false;
 		for (String attr: sList) {
 			if (done()) break;
-			cList.addAll(getCompounds(go, network, attr, AttriType.smiles, threadList));
+			List<Compound> getResults = getCompounds(go, network, attr, AttriType.smiles, threadList);
+			if (getResults != null) {
+				cList.addAll(getResults);
+				foundSMILES = true;
+			}
 		}
+		if (cList.size() > 0 || foundSMILES) return cList;
 
 		for (String attr: iList) {
 			if (done()) break;
-			cList.addAll(getCompounds(go, network, attr, AttriType.inchi, threadList));
+			List<Compound> getResults = getCompounds(go, network, attr, AttriType.inchi, threadList);
+			if (getResults != null)
+				cList.addAll(getResults);
 		}
 
 		return cList;
@@ -171,10 +180,11 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 			
 		if (attrType == String.class) {
 			String cstring = TableUtils.getAttribute(network, go, attr, String.class);
-			if (cstring == null) return cList;
+			if (cstring == null) return null;
 			cList.addAll(getCompounds(go, network, attr, cstring, type, threadList));
 		} else if (attrType == List.class) {
 			List<String> stringList = TableUtils.getListAttribute(network, go, attr, String.class);
+			if (stringList == null || stringList.size() == 0) return null;
 			for (String cstring: stringList) {
 				cList.addAll(getCompounds(go, network, attr, cstring, type, threadList));
 				if (done()) break;
