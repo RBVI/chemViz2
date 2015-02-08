@@ -14,6 +14,7 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.cytoscape.view.presentation.customgraphics.PaintedShape;
@@ -21,12 +22,16 @@ import org.cytoscape.view.presentation.customgraphics.PaintedShape;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
 import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.SymbolVisibility;
+import org.openscience.cdk.renderer.color.CDK2DAtomColors;
 import org.openscience.cdk.renderer.font.AWTFontManager;
 import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
 import org.openscience.cdk.renderer.generators.BasicBondGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.generators.RingGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator.Visibility;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
 public class ViewUtils {
@@ -139,6 +144,23 @@ public class ViewUtils {
 		// generators make the image elements
 		List<IGenerator<IAtomContainer>> generators = 
 			new ArrayList<IGenerator<IAtomContainer>>();
+
+		Font font = new Font("Arial", Font.PLAIN, 24);
+		AtomContainerRenderer renderer = 
+			new AtomContainerRenderer(Arrays.asList(new BasicSceneGenerator(),
+			                                        new StandardGenerator(font)),
+			                          new AWTFontManager());
+
+		RendererModel model = renderer.getRenderer2DModel();
+		model.set(StandardGenerator.Visibility.class, SymbolVisibility.iupacRecommendations());
+		model.set(StandardGenerator.AtomColor.class, new CDK2DAtomColors());
+		model.set(StandardGenerator.StrokeRatio.class, 0.85);
+		model.set(StandardGenerator.SymbolMarginRatio.class, 4d);
+
+		if (background == null)
+			background = new Color(255,255,255,255);
+
+		/*
 		generators.add(new BasicSceneGenerator());
 		generators.add(new BasicBondGenerator());
 		generators.add(new RingGenerator());
@@ -159,6 +181,7 @@ public class ViewUtils {
 		model.set(RingGenerator.BondWidth.class, 2.0);
 		model.set(BasicAtomGenerator.ColorByType.class, true);
 		model.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
+		*/
 		return renderer;
 	}
 }

@@ -41,6 +41,7 @@ import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.elements.ArrowElement;
 import org.openscience.cdk.renderer.elements.AtomSymbolElement;
+import org.openscience.cdk.renderer.elements.Bounds;
 import org.openscience.cdk.renderer.elements.ElementGroup;
 import org.openscience.cdk.renderer.elements.GeneralPath;
 import org.openscience.cdk.renderer.elements.IRenderingElement;
@@ -144,6 +145,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			visit((GeneralPath)element);
 		else if (element instanceof ArrowElement)
 			visit((ArrowElement) element);
+		else if (element instanceof Bounds)
+			visit((Bounds) element);
 		else
 			System.err.println("Visitor method for "
 			                    + element.getClass().getName() + " is not implemented");
@@ -245,8 +248,12 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		java.awt.geom.GeneralPath generalPath = new java.awt.geom.GeneralPath();
 		generalPath.append( getPathIterator(path, transform), false);
 
+		/*
 		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(generalPath), null, 
 		                                    currentStroke, path.color);
+		*/
+		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(generalPath), path.color, 
+		                                    null, null);
 		cgList.add(c);
 	}
 
@@ -454,6 +461,10 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		} else {
 			this.drawFilledWedge(vertexA, vertexB, vertexC, wedge.color);
 		}
+	}
+
+	private void visit (Bounds bounds) {
+		// Not sure we want to do anything here...
 	}
 
 	private double scaleX(double xCoord) {
