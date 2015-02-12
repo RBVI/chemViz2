@@ -39,7 +39,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cytoscape.application.events.SetCurrentNetworkListener;
+import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
+import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.application.swing.CytoPanelState;
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -77,6 +81,11 @@ public class HideResultsPanelTask extends AbstractCompoundTask {
 		registrar.unregisterService(panel, RowsSetListener.class);
 		registrar.unregisterService(panel, SetCurrentNetworkListener.class);
 		registrar.unregisterService(panel, CytoPanelComponent.class);
+
+		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
+		CytoPanel cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
+		if (cytoPanel.getCytoPanelComponentCount() == 0)
+			cytoPanel.setState(CytoPanelState.HIDE);
 
 		settings.setResultsPanel(null);
 	}

@@ -40,7 +40,11 @@ import java.util.List;
 import java.util.Properties;
 
 import org.cytoscape.application.events.SetCurrentNetworkListener;
+import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
+import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.application.swing.CytoPanelState;
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.CyServiceRegistrar;
@@ -67,6 +71,8 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
  	 */
 	public void run(TaskMonitor taskMonitor) {
 		CyServiceRegistrar registrar = settings.getServiceRegistrar();
+		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
+		CytoPanel cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
 
 		// If the panel is not already registered, create it
 		ChemVizResultsPanel panel = settings.getResultsPanel();
@@ -79,6 +85,10 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
 		registrar.registerService(panel, CytoPanelComponent.class, new Properties());
 		registrar.registerService(panel, RowsSetListener.class, new Properties());
 		registrar.registerService(panel, SetCurrentNetworkListener.class, new Properties());
+
+		if (cytoPanel.getState() == CytoPanelState.HIDE)
+			cytoPanel.setState(CytoPanelState.DOCK);
+
 	}
 }
 
