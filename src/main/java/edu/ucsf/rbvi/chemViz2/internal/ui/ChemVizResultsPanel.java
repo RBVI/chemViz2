@@ -47,6 +47,13 @@ import java.awt.BorderLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+
 import java.text.DecimalFormat;
 
 import java.util.ArrayList;
@@ -319,6 +326,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 	static String PUBCHEM = "http://pubchem.ncbi.nlm.nih.gov/search/search.cgi?cmd=search&q_type=dt&simp_schtp=fs&q_data=";
 	static String CHEMSPIDER = "http://www.chemspider.com/smiles?";
+	static String CHEMBL = "http://www.ebi.ac.uk/chembl/compound/inspect/";
 
 	private void addInfoPanel(int width, Compound compound) {
     outerPanel.setLayout(new BorderLayout());
@@ -358,11 +366,16 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			}
 		});
 
-		String message = "<h2 style=\"margin-left: 5px;\">CrossLinks</h2>";
-		message += "<table style=\"margin-left: 10px;\"><tr><td><a href=\""+PUBCHEM+compound.getMoleculeString()+"\">PubChem</a></td>";
-		message += "<td><a href=\""+CHEMSPIDER+compound.getMoleculeString()+"\">ChemSpider</a> </td></tr></table>";
+		String message = "<h2 style=\"margin-left: 5px;margin-bottom: 0px;\">CrossLinks</h2>";
+		message += "<table style=\"margin-left: 10px;margin-top: 0px;\"><tr><td><a href=\""+PUBCHEM+compound.getMoleculeString()+"\">PubChem</a></td>";
+		message += "<td><a href=\""+CHEMSPIDER+compound.getMoleculeString()+"\">ChemSpider</a> </td>";
+		String chemblID = getChEMBLID(compound);
+		if (chemblID != null)
+			message += "<td><a href=\""+CHEMBL+chemblID+"\">ChEMBL</a> </td></tr></table>";
+		else
+			message += "</tr></table>";
 		
-		message += "<h2 style=\"margin-left: 5px;\">Chemical Descriptor</h2>";
+		message += "<h2 style=\"margin-left: 5px;margin-bottom: 0px;\">Chemical Descriptor</h2>";
 		message = addDescriptors(message, compound, "htmlformula", "mass", "weight", "roff", "acceptors", "donors", "alogp2", "smiles");
 		textArea.setText(message);
 		JScrollPane scrollPane = new JScrollPane(textArea);
@@ -434,6 +447,46 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			return string;
 		String chunk = string.substring(0, width);
 		return chunk+"\n"+wrap(string.substring(width,string.length()), width);
+	}
+
+	private String getChEMBLID(Compound compound) {
+		try {
+			// Get the SMILES string
+			String smiles = compound.getMoleculeString();
+			// Construct the query
+			URL query = new URL("https://www.ebi.ac.uk/chemblws/compounds/smiles/"+URLEncoder.encode(smiles, "UTF-8"));
+			// System.out.println("Query = "+query.toString());
+
+			URLConnection connection = query.openConnection();
+			// Get the XML back
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	
+			String line;
+			StringBuilder xml = new StringBuilder();
+			while ((line = in.readLine()) != null) {
+				// System.out.println("Line = "+line);
+				xml.append(line);
+			}
+			in.close();
+
+			String response = xml.toString();
+			// System.out.println("xml = "+response);
+
+			// Find the ChEMBL ID
+			int start = response.indexOf("<chemblId>");
+			// System.out.println("Start = "+start);
+			if (start < 0) return null;
+	
+			start = start + 10;
+	
+			int end = response.indexOf("</chemblId>");
+			// System.out.println("end = "+end);
+			// System.out.println("id = "+xml.substring(start, end));
+			return xml.substring(start, end);
+		} catch (Exception e) { 
+			e.printStackTrace();
+			return null;
+		}
 	}
 			
 }
