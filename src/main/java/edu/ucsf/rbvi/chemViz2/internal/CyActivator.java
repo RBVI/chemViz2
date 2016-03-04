@@ -331,7 +331,7 @@ public class CyActivator extends AbstractCyActivator {
 				                                 networkViewManager, vmm, true, null);
 			addMenus(bc, similarityCommandTaskFactory, null, null, "create similarity", 
 			         "Create a similarity network from a set of nodes",
-			         null, "networkAndView", null, false);
+			         null, "network", null, false);
 		}
 
 		// ChemVizResultsPanel -- needsGUI
@@ -386,6 +386,8 @@ public class CyActivator extends AbstractCyActivator {
 	                      boolean exclusive) {
 		String baseMenu = "Apps.Cheminformatics Tools";
 		Properties properties = new Properties();
+
+		// System.out.println("Adding menus for '"+menu+"', '"+title+"', '"+command+"', '"+enable+"'");
 
 		if (menu != null) {
 			properties.setProperty(PREFERRED_MENU, baseMenu+"."+menu);

@@ -1,5 +1,6 @@
 package edu.ucsf.rbvi.chemViz2.internal.tasks;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
@@ -21,7 +23,7 @@ import org.cytoscape.work.TaskIterator;
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 
 public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory 
-                                    implements NetworkViewTaskFactory, NodeViewTaskFactory {
+                                    implements NetworkTaskFactory, NetworkViewTaskFactory, NodeViewTaskFactory {
 	ChemInfoSettings settings = null;
 	Scope scope;
 	boolean newNetwork = true;
@@ -46,6 +48,7 @@ public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory
 		return null;
 	}
 
+	@Override
 	public boolean isReady(CyNetworkView networkView) {
 		if (networkView == null) 
 			return false;
@@ -58,15 +61,7 @@ public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory
 		return false;
 	}
 
-	public boolean isReady(View<CyNode> nView, CyNetworkView netView) {
-		if (netView == null) 
-			return false;
-		if (nView != null && settings.hasNodeCompounds(Collections.singletonList(nView.getModel())))
-			return true;
-
-		return selectedNodesReady(netView.getModel());
-	}
-
+	@Override
 	public TaskIterator createTaskIterator(CyNetworkView networkView) {
 		List<CyNode> selectedNodes;
 		if (scope == Scope.ALLNODES)
@@ -80,12 +75,51 @@ public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory
 		                                               networkManager, networkViewManager, vmm, settings, newNetwork));
 	}
 
+	@Override
+	public boolean isReady(View<CyNode> nView, CyNetworkView netView) {
+		if (netView == null) 
+			return false;
+		if (nView != null && settings.hasNodeCompounds(Collections.singletonList(nView.getModel())))
+			return true;
+
+		return selectedNodesReady(netView.getModel());
+	}
+
+	@Override
 	public TaskIterator createTaskIterator(View<CyNode> nView, CyNetworkView netView) {
 		List<CyNode> selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
 		if (selectedNodes == null || selectedNodes.size() == 0)
 			selectedNodes = Collections.singletonList(nView.getModel());
 
 		return new TaskIterator(new TanimotoScorerTask(netView, selectedNodes, viewFactory, 
+		                                               networkManager, networkViewManager, vmm, settings, newNetwork));
+	}
+
+	@Override
+	public boolean isReady(CyNetwork net) {
+		if (net == null) return false;
+		if (getNetworkView(net) == null) return false;
+
+		if (scope == Scope.ALLNODES && settings.hasNodeCompounds(net.getNodeList()))
+			return true;
+
+		if (scope == Scope.SELECTEDNODES)
+			return selectedNodesReady(net);
+
+		return false;
+	}
+
+	@Override
+	public TaskIterator createTaskIterator(CyNetwork net) {
+		List<CyNode> selectedNodes;
+		if (scope == Scope.ALLNODES)
+			selectedNodes = net.getNodeList();
+		else if (scope == Scope.SELECTEDNODES) {
+			selectedNodes = CyTableUtil.getNodesInState(net, CyNetwork.SELECTED, true);
+		} else
+			selectedNodes = null; // Commands
+		CyNetworkView networkView = getNetworkView(net);
+		return new TaskIterator(new TanimotoScorerTask(networkView, selectedNodes, viewFactory,
 		                                               networkManager, networkViewManager, vmm, settings, newNetwork));
 	}
 
@@ -96,5 +130,16 @@ public class SimilarityNetworkTaskFactory extends ChemVizAbstractTaskFactory
 				return true;
 		}
 		return false;
+	}
+
+	private CyNetworkView getNetworkView(CyNetwork network) {
+		Collection<CyNetworkView> views = networkViewManager.getNetworkViews(network);
+		if (views == null || views.size() == 0) return null;
+
+		CyNetworkView failover;
+		for (CyNetworkView view: views) {
+			return view;
+		}
+		return null;
 	}
 }
