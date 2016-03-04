@@ -28,8 +28,6 @@ import java.util.List;
 
 
 // import java.util.Objects;
-import org.openscience.cdk.annotations.TestClass;
-
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.matchers.AtomMatcher;
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces.IEdge;
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces.INode;
@@ -41,7 +39,6 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces.INode;
  * @cdk.githash
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.algorithm.vflib.VFLibTest")
 public class NodeBuilder implements INode {
 
     @Override

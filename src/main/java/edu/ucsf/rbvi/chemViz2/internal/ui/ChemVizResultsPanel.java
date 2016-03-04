@@ -380,7 +380,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		textArea.setText(message);
 		JScrollPane scrollPane = new JScrollPane(textArea);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		splitPane.setBottomComponent(scrollPane);
 		outerPanel.add(BorderLayout.CENTER, splitPane);
 	}

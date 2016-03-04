@@ -23,7 +23,6 @@
 package edu.ucsf.rbvi.chemViz2.internal.smsd.tools;
 
 import java.util.Comparator;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtom;
@@ -66,7 +65,6 @@ public class AtomContainerComparator implements Comparator<IAtomContainer> {
      * @param o2
      * @return
      */
-    @TestMethod("testCompare_Object_Object")
     @Override
     public int compare(IAtomContainer o1, IAtomContainer o2) {
         // Check for nulls

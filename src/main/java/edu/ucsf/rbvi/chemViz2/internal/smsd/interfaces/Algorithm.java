@@ -22,8 +22,6 @@
  */
 package edu.ucsf.rbvi.chemViz2.internal.smsd.interfaces;
 
-import org.openscience.cdk.annotations.TestClass;
-
 /**
  * 
  * This class represents various algorithm type supported by SMSD.
@@ -42,7 +40,6 @@ import org.openscience.cdk.annotations.TestClass;
  * @cdk.githash
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.interfaces.AlgorithmTest")
 public enum Algorithm implements Comparable<Algorithm> {
 
     /**

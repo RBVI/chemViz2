@@ -25,8 +25,6 @@ package edu.ucsf.rbvi.chemViz2.internal.smsd.tools;
 
 import org.openscience.cdk.CDKConstants;
 import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.annotations.TestClass;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
@@ -48,7 +46,6 @@ import org.openscience.cdk.tools.manipulator.RingSetManipulator;
  *
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.tools.MoleculeSanityCheckTest")
 public class MoleculeSanityCheck {
 
     private static final ILoggingTool logger =
@@ -60,7 +57,6 @@ public class MoleculeSanityCheck {
      * @param molecule_orignal 
      * @return cleaned GraphAtomContainer
      */
-    @TestMethod("testCheckAndCleanMolecule")
     public synchronized static IAtomContainer checkAndCleanMolecule(IAtomContainer molecule_orignal) {
         boolean isMarkush = false;
         IAtomContainer molecule = molecule_orignal;
@@ -103,7 +99,6 @@ public class MoleculeSanityCheck {
      *
      * @param mol input molecule
      */
-    @TestMethod("testAromatizeMolecule")
     public synchronized static void aromatizeMolecule(IAtomContainer mol) {
         // need to find rings and aromaticity again since added H's
 

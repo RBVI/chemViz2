@@ -24,8 +24,6 @@ package edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.rgraph;
 
 import java.util.*;
 
-import org.openscience.cdk.annotations.TestClass;
-import org.openscience.cdk.annotations.TestMethod;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
@@ -43,7 +41,6 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.interfaces.IResults;
  *
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.algorithm.cdk.CDKMCSHandlerTest")
 public class CDKSubGraphHandler implements IResults {
 
 //    //~--- fields -------------------------------------------------------------
@@ -224,7 +221,6 @@ public class CDKSubGraphHandler implements IResults {
      * @return
      */
     @Override
-    @TestMethod("testGetAllAtomMapping")
     public List<AtomAtomMapping> getAllAtomMapping() {
         return Collections.unmodifiableList(allAtomMCS);
     }
@@ -235,7 +231,6 @@ public class CDKSubGraphHandler implements IResults {
      * @return
      */
     @Override
-    @TestMethod("testGetFirstAtomMapping")
     public AtomAtomMapping getFirstAtomMapping() {
         if (allAtomMCS.iterator().hasNext()) {
             return allAtomMCS.iterator().next();

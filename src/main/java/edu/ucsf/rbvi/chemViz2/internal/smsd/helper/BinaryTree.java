@@ -25,24 +25,18 @@
  */
 package edu.ucsf.rbvi.chemViz2.internal.smsd.helper;
 
-import org.openscience.cdk.annotations.TestClass;
-import org.openscience.cdk.annotations.TestMethod;
-
-
 /**
  * Class to construct a Binary tree for McGregor search.
  * @cdk.module smsd
  * @cdk.githash
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.helper.BinaryTreeTest")
 public class BinaryTree {
 
     /**
      * Creates a new instance of BinaryTree.
      * @param value node value
      */
-    @TestMethod("testBinaryTree")
     public BinaryTree(int value) {
         this.value = value;
     }
@@ -57,7 +51,6 @@ public class BinaryTree {
      * Return value of the node
      * @return get the value of the current node
      */
-    @TestMethod("testGetValue")
     public synchronized int getValue() {
         return this.value;
     }
@@ -66,7 +59,6 @@ public class BinaryTree {
      * Returns equal node
      * @return the equal
      */
-    @TestMethod("testGetEqual")
     public synchronized BinaryTree getEqual() {
         return equal;
     }
@@ -75,7 +67,6 @@ public class BinaryTree {
      * Set equal node
      * @param equal the equal to set
      */
-    @TestMethod("testSetEqual")
     public synchronized void setEqual(BinaryTree equal) {
         this.equal = equal;
     }
@@ -84,7 +75,6 @@ public class BinaryTree {
      * Returns not equal node
      * @return the notEqual
      */
-    @TestMethod("testGetNotEqual")
     public synchronized BinaryTree getNotEqual() {
         return notEqual;
     }
@@ -93,7 +83,6 @@ public class BinaryTree {
      * Set not equal node
      * @param notEqual the notEqual to set
      */
-    @TestMethod("testSetNotEqual")
     public synchronized void setNotEqual(BinaryTree notEqual) {
         this.notEqual = notEqual;
     }

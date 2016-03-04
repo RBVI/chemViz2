@@ -104,7 +104,9 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 			if (done()) break;
 			if (maxThreads == 1)
 				updateMonitor();
-			cList.addAll(getCompounds(go, network, sList, iList, threadList));
+			List<Compound> compounds4id = getCompounds(go, network, sList, iList, threadList);
+			if (compounds4id != null && compounds4id.size() > 0)
+				cList.addAll(compounds4id);
 		}
 
 		if (threadList != null && threadList.size() > 0)
@@ -137,7 +139,7 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 		    && (iList == null || iList.size() == 0))
 			return null;
 		
-		List<Compound> cList = new ArrayList();
+		List<Compound> cList = new ArrayList<>();
 
 		// Get the compound list from each attribute, but we want to give preference
 		// to SMILES.  Only if we don't have SMILES do we want to add InChI attributes

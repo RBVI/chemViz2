@@ -47,7 +47,6 @@
 package edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.map;
 
 // import java.util.Objects;
-import org.openscience.cdk.annotations.TestClass;
 import org.openscience.cdk.interfaces.IAtom;
 
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces.INode;
@@ -59,7 +58,6 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces.INode;
  * @cdk.githash
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.algorithm.vflib.VFLibTest")
 public class Match {
 
     @Override

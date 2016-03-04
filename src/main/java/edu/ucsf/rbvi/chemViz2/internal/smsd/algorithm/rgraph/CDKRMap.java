@@ -29,8 +29,6 @@
  */
 package edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.rgraph;
 
-import org.openscience.cdk.annotations.TestClass;
-
 /**
  *  An CDKRMap implements the association between an edge (bond) in G1 and an edge
  *  (bond) in G2, G1 and G2 being the compared graphs in a RGraph context.
@@ -41,7 +39,6 @@ import org.openscience.cdk.annotations.TestClass;
  * @cdk.module  smsd
  * @cdk.githash
  */
-@TestClass("org.openscience.cdk.smsd.algorithm.cdk.CDKRMapTest")
 public class CDKRMap {
 
     private int id1 = 0;

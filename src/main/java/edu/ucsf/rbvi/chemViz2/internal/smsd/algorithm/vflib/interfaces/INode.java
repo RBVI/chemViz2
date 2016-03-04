@@ -49,8 +49,6 @@ package edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.interfaces;
 
 import java.util.List;
 
-import org.openscience.cdk.annotations.TestClass;
-
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.matchers.AtomMatcher;
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.builder.EdgeBuilder;
 import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.builder.NodeBuilder;
@@ -61,7 +59,6 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.algorithm.vflib.builder.NodeBuilder;
  * @cdk.githash
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.algorithm.vflib.VFLibTest")
 public interface INode {
 
     /**

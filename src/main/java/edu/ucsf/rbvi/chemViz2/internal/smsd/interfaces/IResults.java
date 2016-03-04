@@ -24,8 +24,6 @@ package edu.ucsf.rbvi.chemViz2.internal.smsd.interfaces;
 
 import java.util.List;
 
-import org.openscience.cdk.annotations.TestClass;
-
 import edu.ucsf.rbvi.chemViz2.internal.smsd.AtomAtomMapping;
 
 /**
@@ -33,7 +31,6 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.AtomAtomMapping;
  *
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.interfaces.IMCSBaseTest")
 public interface IResults {
 
     /**

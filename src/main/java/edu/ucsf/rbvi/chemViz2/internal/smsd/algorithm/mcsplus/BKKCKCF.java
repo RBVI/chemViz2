@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-import org.openscience.cdk.annotations.TestClass;
 
 /**
  * This class implements Bron-Kerbosch clique detection algorithm as it is described in [F. Cazals, C. Karande: An
@@ -40,7 +39,6 @@ import org.openscience.cdk.annotations.TestClass;
  * @cdk.module smsd
  * @author Syed Asad Rahman <asad@ebi.ac.uk>
  */
-@TestClass("org.openscience.cdk.smsd.BKKCKCFTest")
 public final class BKKCKCF {
 
     private final Set<List<Integer>> max_Cliques_Set;
