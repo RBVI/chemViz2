@@ -19,8 +19,16 @@ import java.util.List;
 
 import org.cytoscape.view.presentation.customgraphics.PaintedShape;
 
+import org.openscience.cdk.ChemModel;
+import org.openscience.cdk.ReactionSet;
+import org.openscience.cdk.depict.DepictionGenerator;
+import org.openscience.cdk.depict.Depiction;
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IReaction;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
+import org.openscience.cdk.renderer.ChemModelRenderer;
+import org.openscience.cdk.renderer.ReactionRenderer;
 import org.openscience.cdk.renderer.RendererModel;
 import org.openscience.cdk.renderer.SymbolVisibility;
 import org.openscience.cdk.renderer.color.CDK2DAtomColors;
@@ -28,6 +36,9 @@ import org.openscience.cdk.renderer.font.AWTFontManager;
 import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
 import org.openscience.cdk.renderer.generators.BasicBondGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
+import org.openscience.cdk.renderer.generators.ReactionArrowGenerator;
+import org.openscience.cdk.renderer.generators.ReactionPlusGenerator;
+import org.openscience.cdk.renderer.generators.ReactionSceneGenerator;
 import org.openscience.cdk.renderer.generators.RingGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
@@ -35,35 +46,27 @@ import org.openscience.cdk.renderer.generators.standard.StandardGenerator.Visibi
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 
 public class ViewUtils {
-	public static Image createImage(IAtomContainer iMolecule, int width, int height,
-	                                Paint background) {
-		if (iMolecule == null || width == 0 || height == 0) {
-			return blankImage(iMolecule, width, height);
+
+	public static Image createImage(IReaction iReaction, int width, int height,
+	                                Paint background, boolean showLabel) {
+		if (iReaction == null || width == 0 || height == 0) {
+			return blankImage(width, height);
 		}
 
 		int renderWidth = width;
-		if (renderWidth < 200) renderWidth = 200;
+		// if (renderWidth < 200) renderWidth = 200;
 		int renderHeight = height;
-		if (renderHeight < 200) renderHeight = 200;
+		// if (renderHeight < 200) renderHeight = 200;
 
-		BufferedImage bufferedImage = 
-			new BufferedImage(renderWidth, renderHeight, 
-			                  BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = bufferedImage.createGraphics();
-
-		g2d.setColor((Color)background);
-		g2d.setBackground((Color)background);
-		g2d.fillRect(0,0,width,height);
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-		                     RenderingHints.VALUE_ANTIALIAS_ON);
-
-		AtomContainerRenderer renderer = getRenderer((Color)background);
-		if (renderer == null)
-			return null;
-
-		Rectangle2D bbox = new Rectangle2D.Double(0,0,renderWidth,renderHeight);
-		renderer.setup(iMolecule, new Rectangle(renderWidth, renderHeight));
-		renderer.paint(iMolecule, new AWTDrawVisitor(g2d), bbox, true);
+		DepictionGenerator generator = 
+					getDepictionGenerator(renderWidth, renderHeight, (Color)background, showLabel);
+		BufferedImage bufferedImage = null;
+		try {
+			Depiction depiction = generator.depict(iReaction);
+			bufferedImage =  depiction.toImg();
+		} catch (CDKException cdke) {
+			return blankImage(width, height);
+		}
 
 		if (renderWidth != width || renderHeight != height) {
 			AffineTransform tx = new AffineTransform();
@@ -80,6 +83,59 @@ public class ViewUtils {
 			bufferedImage = op.filter(bufferedImage, null);
 		}
 		return bufferedImage;
+	}
+
+	public static Image createImage(IAtomContainer iMolecule, int width, int height,
+	                                Paint background, boolean showLabel) {
+		if (iMolecule == null || width == 0 || height == 0) {
+			return blankImage(width, height);
+		}
+
+		int renderWidth = width;
+		// if (renderWidth < 200) renderWidth = 200;
+		int renderHeight = height;
+		// if (renderHeight < 200) renderHeight = 200;
+
+		DepictionGenerator generator = 
+					getDepictionGenerator(renderWidth, renderHeight, (Color)background, showLabel);
+		BufferedImage bufferedImage = null;
+		try {
+			Depiction depiction = generator.depict(iMolecule);
+			bufferedImage =  depiction.toImg();
+		} catch (CDKException cdke) {
+			return blankImage(width, height);
+		}
+
+		if (renderWidth != width || renderHeight != height) {
+			AffineTransform tx = new AffineTransform();
+			if (width < height) {
+				tx.scale((double)width/(double)renderWidth, 
+				         (double)width/(double)renderWidth);
+			} else {
+				tx.scale((double)height/(double)renderHeight, 
+				         (double)height/(double)renderHeight);
+			}
+
+			AffineTransformOp op = 
+				new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+			bufferedImage = op.filter(bufferedImage, null);
+		}
+		return bufferedImage;
+	}
+
+	public static List<PaintedShape> createShapes(double x, double y, double width, double height,
+	                                              IReaction reaction, Paint background) {
+		if (reaction == null) return null;
+
+		double boxSize = 100.0;
+
+		try {
+		} catch (Exception e) {
+			// TODO: Log message
+			System.out.println("Unable to render molecule: "+e);
+			return null;
+		}
+		return null;
 	}
 
 	public static List<PaintedShape> createShapes(double x, double y, double width, double height,
@@ -103,7 +159,7 @@ public class ViewUtils {
 		}
 	}
 
-	private static Image blankImage(IAtomContainer mol, int width, int height) {
+	private static Image blankImage(int width, int height) {
 		final String noImage = "Image Unavailable";
 
 		if (width == 0 || height == 0)
@@ -140,16 +196,29 @@ public class ViewUtils {
 		return bufferedImage;
 	}
 
+	private static DepictionGenerator getDepictionGenerator(int width, int height, 
+	                                                        Color background, boolean showLabel) {
+		DepictionGenerator dg = new DepictionGenerator()
+		                                 .withAtomColors()
+																		 .withBackgroundColor(background)
+																		 .withSize(width, height)
+																		 .withTerminalCarbons();
+		if (showLabel) 
+			return dg.withMolTitle().withRxnTitle().withTitleColor(Color.BLACK);
+		else
+			return dg;
+	}
+
 	private static AtomContainerRenderer getRenderer(Color background) {
 		// generators make the image elements
 		List<IGenerator<IAtomContainer>> generators = 
-			new ArrayList<IGenerator<IAtomContainer>>();
+						new ArrayList<IGenerator<IAtomContainer>>();
 
 		Font font = new Font("Arial", Font.PLAIN, 24);
 		AtomContainerRenderer renderer = 
-			new AtomContainerRenderer(Arrays.asList(new BasicSceneGenerator(),
-			                                        new StandardGenerator(font)),
-			                          new AWTFontManager());
+				new AtomContainerRenderer(Arrays.asList(new BasicSceneGenerator(),
+				                                        new StandardGenerator(font)),
+				                                        new AWTFontManager());
 
 		RendererModel model = renderer.getRenderer2DModel();
 		model.set(StandardGenerator.Visibility.class, SymbolVisibility.iupacRecommendations());
@@ -160,28 +229,6 @@ public class ViewUtils {
 		if (background == null)
 			background = new Color(255,255,255,255);
 
-		/*
-		generators.add(new BasicSceneGenerator());
-		generators.add(new BasicBondGenerator());
-		generators.add(new RingGenerator());
-		generators.add(new BasicAtomGenerator());
-       
-		// the renderer needs to have a toolkit-specific font manager 
-		AtomContainerRenderer renderer = 
-			new AtomContainerRenderer(generators, new AWTFontManager());
-		RendererModel model = renderer.getRenderer2DModel();
-
-		if (background == null)
-			background = new Color(255,255,255,255);
-
-		// Set up our rendering parameters
-		model.set(BasicSceneGenerator.UseAntiAliasing.class, true);
-		model.set(BasicSceneGenerator.BackgroundColor.class, background);
-		model.set(BasicBondGenerator.BondWidth.class, 2.0);
-		model.set(RingGenerator.BondWidth.class, 2.0);
-		model.set(BasicAtomGenerator.ColorByType.class, true);
-		model.set(BasicAtomGenerator.ShowExplicitHydrogens.class, true);
-		*/
 		return renderer;
 	}
 }

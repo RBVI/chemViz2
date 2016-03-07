@@ -44,6 +44,7 @@ import org.openscience.cdk.renderer.elements.ElementGroup;
 import org.openscience.cdk.renderer.elements.GeneralPath;
 import org.openscience.cdk.renderer.elements.IRenderingElement;
 import org.openscience.cdk.renderer.elements.LineElement;
+// import org.openscience.cdk.renderer.elements.MarkedElement;
 import org.openscience.cdk.renderer.elements.OvalElement;
 import org.openscience.cdk.renderer.elements.PathElement;
 import org.openscience.cdk.renderer.elements.RectangleElement;
@@ -145,6 +146,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			visit((ArrowElement) element);
 		else if (element instanceof Bounds)
 			visit((Bounds) element);
+		// else if (element instanceof MarkedElement)
+		// 	visit((MarkedElement) element);
 		else
 			System.err.println("Visitor method for "
 			                    + element.getClass().getName() + " is not implemented");
@@ -464,6 +467,12 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	private void visit (Bounds bounds) {
 		// Not sure we want to do anything here...
 	}
+
+	/* 
+	private void visit (MarkedElement element) {
+		// Not sure we want to do anything here...
+	}
+	*/
 
 	private double scaleX(double xCoord) {
 		return xCoord*transform.getScaleX();

@@ -218,6 +218,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			height = height-LABEL_HEIGHT;
 		} else if (compoundList.size() == 1) {
 			labelComponent = (JLabel)components[1];
+			/*
 			if (width < height)
 				height = width;
 			else
@@ -227,6 +228,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 				width = 300;
 				height = 300;
 			}
+			*/
 		}
 
 		if (imageMap.containsKey(panel)) {

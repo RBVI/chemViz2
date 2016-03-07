@@ -97,11 +97,19 @@ public class ChemVizCustomGraphics implements CyCustomGraphics<PaintedShape> {
 	public List<PaintedShape> getLayers(CyNetworkView networkView, View<? extends CyIdentifiable> grView) {
 		// Set offsets
 		// System.out.println("Molecule = "+compound.getMolecule());
-		return ViewUtils.createShapes((double)(-width)/2.0, (double)(-height)/2.0, (double)width, (double)height, 
-		                              compound.getMolecule(), backgroundColor);
+		if (compound.getCompoundType().equals(Compound.CompoundType.MOLECULE)) {
+			return ViewUtils.createShapes((double)(-width)/2.0, (double)(-height)/2.0, 
+			                              (double)width, (double)height, 
+		                                compound.getMolecule(), backgroundColor);
+		} else if (compound.getCompoundType().equals(Compound.CompoundType.REACTION)) {
+			return ViewUtils.createShapes((double)(-width)/2.0, (double)(-height)/2.0, 
+			                              (double)width, (double)height, 
+		                                compound.getReaction(), backgroundColor);
+		}
+		return null;
 	}
 	public Image getRenderedImage() {
-		return ViewUtils.createImage(compound.getMolecule(), width, height, backgroundColor);
+		return ViewUtils.createImage(compound.getMolecule(), width, height, backgroundColor, false);
 	}
 	public int getWidth() { return width; }
 	public void setDisplayName(String displayName) {this.displayName = displayName;}

@@ -19,20 +19,26 @@ import org.cytoscape.model.CyNetwork;
 import edu.ucsf.rbvi.chemViz2.internal.view.ViewUtils;
 
 import org.openscience.cdk.AtomContainer;
-import org.openscience.cdk.aromaticity.CDKHueckelAromaticityDetector;
+import org.openscience.cdk.CDKConstants;
+import org.openscience.cdk.aromaticity.Aromaticity;
+import org.openscience.cdk.aromaticity.ElectronDonation;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.fingerprint.IFingerprinter;
+import org.openscience.cdk.graph.CycleFinder;
+import org.openscience.cdk.graph.Cycles;
 import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IReaction;
 import org.openscience.cdk.modeling.builder3d.ModelBuilder3D;
 import org.openscience.cdk.modeling.builder3d.TemplateHandler3D;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 import net.sf.jniinchi.INCHI_RET;
 
@@ -77,6 +83,11 @@ public class Compound {
 	private int lastImageHeight = -1;
 	private	boolean	lastImageFailed = false;
 	private ChemInfoSettings settings = null;
+
+	// TODO
+	public enum CompoundType { MOLECULE, REACTION };
+	private CompoundType compoundType;
+	private IReaction iReaction; // If we're a reaction
 
 	/**
  	 * The constructor is creates a compound and stores it in
@@ -143,6 +154,24 @@ public class Compound {
 		return iMolecule;
 	}
 
+	// TODO
+	public CompoundType getCompoundType() {
+		return compoundType;
+	}
+
+	public IReaction getReaction() {
+		return iReaction;
+	}
+
+	public void setTitle(String title) {
+		if (compoundType.equals(CompoundType.REACTION) && iReaction != null) {
+			iReaction.setProperty(CDKConstants.TITLE, title);
+		} else if (compoundType.equals(CompoundType.MOLECULE) && iMolecule != null) {
+			iMolecule.setProperty(CDKConstants.TITLE, title);
+		}
+	}
+
+
 	public CyIdentifiable getSource() {
 		return source;
 	}
@@ -156,7 +185,7 @@ public class Compound {
 	}
 
 	public IAtomContainer getMolecule3D() {
-		if (iMolecule3D == null) {
+		if (iMolecule3D == null && compoundType.equals(CompoundType.MOLECULE)) {
 			try {
 				ModelBuilder3D mb3d = 
 					ModelBuilder3D.getInstance(TemplateHandler3D.getInstance(), "mm2", SilentChemObjectBuilder.getInstance());
@@ -170,18 +199,39 @@ public class Compound {
 	}
 
 	public void layoutStructure() {
-		if (!laidOut && iMolecule != null) {
-			try {
-				iMolecule = CDKUtils.layoutMolecule(iMolecule);
-				laidOut = true;
-			} catch (CDKException e) {
-				logger.warn("Unable to layout 2D structure: "+e.getMessage());
-				return;
+		if (!laidOut) {
+			if (compoundType.equals(CompoundType.MOLECULE)) {
+				if (iMolecule == null)
+					return;
+
+				try {
+					iMolecule = CDKUtils.layoutMolecule(iMolecule);
+					laidOut = true;
+				} catch (CDKException e) {
+					logger.warn("Unable to layout 2D structure: "+e.getMessage());
+					return;
+				}
+			} else if (compoundType.equals(CompoundType.REACTION)) {
+				if (iReaction == null)
+					return;
+
+				try {
+					iReaction = CDKUtils.layoutReaction(iReaction);
+					laidOut = true;
+				} catch (CDKException e) {
+					logger.warn("Unable to layout 2D structure: "+e.getMessage());
+					return;
+				}
 			}
 		}
 	}
 
 	public BitSet getFingerprint() {
+		if (compoundType.equals(CompoundType.REACTION)) {
+			logger.error("Attempt to get finger print of reaction!");
+			return null;
+		}
+
 		if (fingerPrint == null) {
 			try {
 				synchronized (fp) {
@@ -215,13 +265,31 @@ public class Compound {
  	 * @return the fetched image
  	 */
 	public Image getImage(int width, int height, Color background) {
+		return getImage(width, height, background, false);
+	}
+
+	/**
+ 	 * Return the 2D image for this compound.
+ 	 *
+ 	 * @param width the width of the rendered image
+ 	 * @param height the height of the rendered image
+ 	 * @param background the background color to use for the image
+ 	 * @param showLabel if true, show the label on the image
+ 	 * @return the fetched image
+ 	 */
+	public Image getImage(int width, int height, Color background, boolean showLabel) {
 		if (lastImageWidth != width || lastImageHeight != height || 
 		    (renderedImage == null && lastImageFailed == false)) {
 
 			layoutStructure();
 
-			renderedImage = 
-				ViewUtils.createImage(iMolecule, width, height, background);
+			// TODO
+			if (compoundType.equals(CompoundType.REACTION))
+				renderedImage = ViewUtils.createImage(iReaction, width, height, background, showLabel);
+			else {
+				renderedImage = 
+					ViewUtils.createImage(iMolecule, width, height, background, showLabel);
+			}
 			lastImageWidth = width;
 			lastImageHeight = height;
 		}
@@ -257,10 +325,23 @@ public class Compound {
 		if (smilesStr == null)
 			return;
 
+		// TODO
+		// Look to see if this is a reaction
 		logger.debug("smiles string = "+smilesStr);
-		// System.out.println("smiles string = "+smilesStr);
-
-		if (this.iMolecule == null) {
+		if (smilesStr.matches(".*>.*>.*")) {
+			// logger.error("Reactions are not supported, yet");
+			// return;
+			iMolecule = null;
+			SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
+			try {
+				iReaction = sp.parseReactionSmiles(this.smilesStr);
+			} catch (InvalidSmilesException e) {
+				iReaction = null;
+				logger.warn("Unable to parse Reaction SMILES: "+smilesStr+" for "+TableUtils.getName(network, source)+": "+e.getMessage());
+				return;
+			}
+			compoundType = CompoundType.REACTION;
+		} else if (this.iMolecule == null) {
 			// Create the CDK Molecule object
 			SmilesParser sp = new SmilesParser(SilentChemObjectBuilder.getInstance());
 			try {
@@ -276,30 +357,26 @@ public class Compound {
 					return;
 				}
 			}
+			compoundType = CompoundType.MOLECULE;
+			// At this point, we should have an IAtomContainer
+			try { 
+				ElectronDonation model = ElectronDonation.cdk();
+				CycleFinder cycles = Cycles.cdkAromaticSet();
+				Aromaticity aromaticity = new Aromaticity(model, cycles);
+				AtomContainerManipulator.percieveAtomTypesAndConfigureAtoms(iMolecule);
+				aromaticity.apply(iMolecule);
+	
+				// Make sure we update our implicit hydrogens
+				CDKHydrogenAdder adder = CDKHydrogenAdder.getInstance(iMolecule.getBuilder());
+				adder.addImplicitHydrogens(iMolecule);
+	
+				// Don't calculate the fingerprint here -- this is *very* expensive
+				// fingerPrint = fp.getFingerprint(addh(iMolecule));
+				fingerPrint = null;
+			} catch (CDKException e1) {
+				fingerPrint = null;
+			}
 		}
-
-		long smilesTime = Calendar.getInstance().getTimeInMillis();
-		totalSMILESTime += smilesTime-fpTime;
-
-		// At this point, we should have an IAtomContainer
-		try { 
-			CDKHueckelAromaticityDetector.detectAromaticity(iMolecule);
-
-			// Make sure we update our implicit hydrogens
-			CDKHydrogenAdder adder = CDKHydrogenAdder.getInstance(iMolecule.getBuilder());
-			adder.addImplicitHydrogens(iMolecule);
-
-			// Don't calculate the fingerprint here -- this is *very* expensive
-			// fingerPrint = fp.getFingerprint(addh(iMolecule));
-			fingerPrint = null;
-		} catch (CDKException e1) {
-			fingerPrint = null;
-		}
-
-		long getFPTime = Calendar.getInstance().getTimeInMillis();
-		totalGetFPTime += getFPTime-smilesTime;
-
-		totalTime += getFPTime-startTime;
 	}
 
 	private String convertInchiToSmiles(String inchi) {

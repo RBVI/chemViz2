@@ -46,6 +46,7 @@ import java.awt.Image;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,10 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+
+import org.openscience.cdk.depict.DepictionGenerator;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
@@ -132,17 +137,18 @@ public class CompoundPopup extends JDialog implements ComponentListener {
 
 		// If we have two components, component 0 is the image and
 		// component 1 is the label
-		JLabel labelComponent = (JLabel)components[0];
+		JLabel label = (JLabel)components[0];
 
 		// Get our new width
 		int width = panel.getWidth();
 		int height = panel.getHeight();
+		// System.out.println("New size = "+width+"x"+height);
 
-		if (imageMap.containsKey(panel)) {
-			Image img = imageMap.get(panel).getImage(width,height-LABEL_HEIGHT, Color.WHITE);
+		if (imageMap.containsKey(label)) {
+			Image img = imageMap.get(label).getImage(width, height-LABEL_HEIGHT, Color.WHITE, false);
 			if (img != null) {
-				labelComponent.setIcon(new ImageIcon(img));
-				labelComponent.setSize(width, height-LABEL_HEIGHT);
+				label.setIcon(new ImageIcon(img));
+				label.setSize(width, height-LABEL_HEIGHT);
 			}
 		}
 	}
@@ -153,8 +159,6 @@ public class CompoundPopup extends JDialog implements ComponentListener {
 		// How many images do we have?
 		int structureCount = compoundList.size();
 		int nCols = (int)Math.sqrt((double)structureCount);
-		GridLayout layout = new GridLayout(nCols, structureCount/nCols, 1, 1);
-		setLayout(layout);
 		LabelType labelType = LabelType.ATTRIBUTE;
 		String textLabel = labelAttribute;
 
@@ -169,39 +173,38 @@ public class CompoundPopup extends JDialog implements ComponentListener {
 			labelType = LabelType.TEXT;
 		}
 
+		GridLayout layout = new GridLayout(nCols, structureCount/nCols, 1, 1);
+		setLayout(layout);
+
 		for (Compound compound: compoundList) {
+			if (labelType == LabelType.ATTRIBUTE) {
+				textLabel = TableUtils.getLabelAttribute(compound.getNetwork(), 
+				                                         compound.getSource(), textLabel);
+				if (textLabel == null)
+					textLabel = TableUtils.getName(compound.getNetwork(), compound.getSource());
+			}
+			compound.setTitle(textLabel);
+
 			// Get the image
-			Image img = compound.getImage(width/nCols, width/nCols-LABEL_HEIGHT, Color.WHITE);
+			Image img = compound.getImage(width/nCols, width/nCols-LABEL_HEIGHT, Color.WHITE, false);
+
 			JPanel panel = new JPanel();
 			BoxLayout bl = new BoxLayout(panel, BoxLayout.Y_AXIS);
 			panel.setLayout(bl);
 
 			JLabel label = new JLabel(new ImageIcon(img));
+			imageMap.put(label, compound);
 			panel.add(label);
 
-			// label.setLocation(0, 0);
-			if (label != null) {
-				if (labelType == LabelType.ATTRIBUTE) {
-					textLabel = TableUtils.getLabelAttribute(compound.getNetwork(), 
-					                                         compound.getSource(), textLabel);
-					if (textLabel == null)
-						textLabel = TableUtils.getName(compound.getNetwork(), compound.getSource());
-				}
-				JTextField tf = new JTextField(textLabel.toString());
-				tf.setHorizontalAlignment(JTextField.CENTER);
-				tf.setEditable(false);
-				tf.setBorder(null);
-				panel.add(tf);
-				tf.setSize(width/nCols, LABEL_HEIGHT);
-				// tf.setLocation(width/nCols, width/nCols-LABEL_HEIGHT);
-			}
-			panel.setBackground(Color.WHITE);
-			panel.setOpaque(true);
-			panel.setBorder(BorderFactory.createEtchedBorder());
+			JTextField tf = new JTextField(textLabel.toString());
+			tf.setHorizontalAlignment(JTextField.CENTER);
+			tf.setEditable(false);
+			tf.setBorder(null);
+			panel.add(tf);
 			panel.addComponentListener(this);
-			imageMap.put(panel, compound);
-			panel.setSize(width/nCols, width/nCols);
-			add (panel);
+			tf.setSize(width/nCols, LABEL_HEIGHT);
+
+			add(panel);
 		}
 	}
 }
