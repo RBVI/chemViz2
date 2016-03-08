@@ -98,12 +98,16 @@ public class ChemVizCustomGraphics implements CyCustomGraphics<PaintedShape> {
 		// Set offsets
 		// System.out.println("Molecule = "+compound.getMolecule());
 		if (compound.getCompoundType().equals(Compound.CompoundType.MOLECULE)) {
-			return ViewUtils.createShapes((double)(-width)/2.0, (double)(-height)/2.0, 
-			                              (double)width, (double)height, 
+			double dWidth = ((double)width)*.95;
+			double dHeight = ((double)height)*.95;
+			return ViewUtils.createShapes((-dWidth)/2.0, (-dHeight)/2.0, 
+			                              dWidth, dHeight, 
 		                                compound.getMolecule(), backgroundColor);
 		} else if (compound.getCompoundType().equals(Compound.CompoundType.REACTION)) {
-			return ViewUtils.createShapes((double)(-width)/2.0, (double)(-height)/2.0, 
-			                              (double)width, (double)height, 
+			double dWidth = ((double)width)*1.1;
+			double dHeight = ((double)height)*1.1;
+			return ViewUtils.createShapes((-dWidth)/2.0, (-dHeight)/2.0, 
+			                              dWidth, dHeight, 
 		                                compound.getReaction(), backgroundColor);
 		}
 		return null;

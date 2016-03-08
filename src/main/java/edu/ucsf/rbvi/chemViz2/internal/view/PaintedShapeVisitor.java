@@ -80,33 +80,47 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	private List<PaintedShape> cgList;
 	private AffineTransform transform;
 	private AffineTransform scaleTransform;
+	private AffineTransform offsetTransform;
+	private double xOffset;
+	private double yOffset;
 	private	Paint backgroundColor;
 
 	private float fitRatio = 0.9f;
+	// private final float minStroke;
+	// private final boolean strokeCache;
+
 	private Long id;
 	private String displayName = "chemViz";
 
-	private final Map<Float, BasicStroke> strokeMap = new HashMap<Float, BasicStroke>();
+	/**
+	 * Should we round coordinates to ints to circumvent graphical glitches from AWT.
+	 */
+	private boolean roundCoords = false;
+
+	private final Map<Integer, BasicStroke> strokeMap = new HashMap<Integer, BasicStroke>();
 
 	public RendererModel getRendererModel() {
 		return rendererModel;
 	}
 
-	public Map<Float, BasicStroke> getStrokeMap() {
+	public Map<Integer, BasicStroke> getStrokeMap() {
 		return strokeMap;
 	}
 
 	private final Map<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
 
-	public PaintedShapeVisitor(double scale, Paint backgroundColor) {
+	public PaintedShapeVisitor(double x, double y, double scale, Paint backgroundColor) {
 		this.fontManager = null;
 		this.rendererModel = null;
 		cgList = new ArrayList<PaintedShape>();
 		map.put(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUB);
 		currentStroke = new BasicStroke(1.0f/4.0f);
-		strokeMap.put(1.0f, currentStroke);
+		strokeMap.put(1, currentStroke);
 		this.scaleTransform = AffineTransform.getScaleInstance(scale, scale);
-		// backgroundColor = view.getUnselectedPaint();
+		this.offsetTransform = AffineTransform.getTranslateInstance(x, y);
+		this.xOffset = x;
+		this.yOffset = y;
+
 		if (backgroundColor == null)
 			this.backgroundColor = Color.WHITE;
 		else
@@ -117,6 +131,10 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 
 	public List<PaintedShape> getPaintedShapes() {
 		return cgList;
+	}
+
+	public void setRounding(boolean val) {
+		this.roundCoords = val;
 	}
 
 	// IDrawVisitor implementation -- public methods
@@ -162,14 +180,6 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 
 	public void setRendererModel(RendererModel rendererModel) {
 		this.rendererModel = rendererModel;
-		/*
- 		if (rendererModel.hasParameter(UseAntiAliasing.class)) {
-			if ((boolean)rendererModel.getParameter(UseAntiAliasing.class).getValue()) {
-				graphics.setRendereringHint(RenderingHints.KEY_ANTIALIASING,
-				                            RenderingHints.VALUE_ANTIALIAS_ON);
-			}
-		}
-		*/
 	}
 
 	public void setTransform(AffineTransform transform) {
@@ -182,21 +192,23 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	}
 
 	private void visit(LineElement line) {
-		float width = (float) (line.width * this.rendererModel.getParameter(Scale.class).getValue());
-		System.out.println("LineElement: width = "+width);
-		/*
-		if (width < 1) width = 1.0f;
-		width = width/2.0f;
-		*/
-		if (!strokeMap.containsKey(width)) 
-			strokeMap.put(width, new BasicStroke(width/4.0f));
-		BasicStroke stroke = strokeMap.get(width);
-		double[] start = transform(line.firstPointX, line.firstPointY);
-		double[] end = transform(line.secondPointX, line.secondPointY);
-		Line2D lineShape = new Line2D.Double(start[0], start[1], end[0], end[1]);
-		Shape s = scaleTransform.createTransformedShape(lineShape);
+		float width = (float) (line.width * transform.getScaleX());
+
+		BasicStroke stroke = new BasicStroke(width*1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+
+		double[] coordinates = new double[]{line.firstPointX, line.firstPointY, line.secondPointX, line.secondPointY};
+		transform.transform(coordinates, 0, coordinates, 0, 2);
+		Line2D lineShape;
+		if (roundCoords) {
+			lineShape = new Line2D.Double(Math.round(coordinates[0]), Math.round(coordinates[1]),
+			                              Math.round(coordinates[2]), Math.round(coordinates[3]));
+		} else {
+			lineShape = new Line2D.Double(coordinates[0], coordinates[1],
+			                              coordinates[2], coordinates[3]);
+		}
+		// Shape s = scaleTransform.createTransformedShape(lineShape);
+		Shape s = createTransformedShape(lineShape);
 		PaintedShape layer = new MyPaintedShape(s, currentColor, stroke, null);
-		// PaintedShape layer = new MyPaintedShape(s, currentColor, null, null);
 		cgList.add(layer);
 	}
 
@@ -228,7 +240,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			p = rectangle.color;
 
 		Rectangle2D rect = new Rectangle2D.Double(point1[0], point1[1], point2[0]-point1[0], point2[1]-point1[1]);
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(rect), p, currentStroke, currentColor);
+		// PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(rect), p, currentStroke, currentColor);
+		PaintedShape c = new MyPaintedShape(createTransformedShape(rect), p, currentStroke, currentColor);
 		cgList.add(c);
 	}
 
@@ -244,7 +257,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			pathShape.lineTo(end[0], end[1]);
 		}
 
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(pathShape), null, 
+		PaintedShape c = new MyPaintedShape(createTransformedShape(pathShape), null, 
 		                                    currentStroke, path.color);
 		cgList.add(c);
 	}
@@ -254,11 +267,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		java.awt.geom.GeneralPath generalPath = new java.awt.geom.GeneralPath();
 		generalPath.append( getPathIterator(path, transform), false);
 
-		/*
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(generalPath), null, 
-		                                    currentStroke, path.color);
-		*/
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(generalPath), path.color, 
+		PaintedShape c = new MyPaintedShape(createTransformedShape(generalPath), path.color, 
 		                                    null, null);
 		cgList.add(c);
 	}
@@ -412,13 +421,12 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	}
 
 	private void visit(ArrowElement line) {
-		// System.out.println("ArrowElement");
+		System.out.println("ArrowElement");
 		double scale = rendererModel.getParameter(Scale.class).getValue();
 
 		float w = (float) (line.width * scale);
-		if (!strokeMap.containsKey(w)) 
-			strokeMap.put(w, new BasicStroke(w/4.0f));
-		BasicStroke stroke = strokeMap.get(w);
+
+		BasicStroke stroke = new BasicStroke(w*1.5f);
 
 		Path2D path = new Path2D.Double();
 
@@ -442,7 +450,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			path.moveTo(end[0], end[1]);
 			path.lineTo(d[0], d[1]);
 		}
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(path), null, 
+		PaintedShape c = new MyPaintedShape(createTransformedShape(path), null, 
 		                                    stroke, line.color);
 		cgList.add(c);
 	}
@@ -502,18 +510,18 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		AffineTransform trans = new AffineTransform();
 		trans.translate(textStartX, textStartY);
 		Shape transShape = trans.createTransformedShape(textShape);
-		Shape scaledShape = scaleTransform.createTransformedShape(transShape);
+		Shape scaledShape = createTransformedShape(transShape);
 
 		if (paintBackground && !textColor.equals(backgroundColor)) {
 			// Paint the background
 			Rectangle2D bbox = transShape.getBounds2D();
 			Rectangle2D bg = new Rectangle2D.Double(bbox.getX()-.5, bbox.getY()-.5, bbox.getWidth()+1, bbox.getHeight()+1);
 			Paint pb = (Color)backgroundColor;
-			PaintedShape cb = new MyPaintedShape(scaleTransform.createTransformedShape(bg), pb, null, null);
+			PaintedShape cb = new MyPaintedShape(createTransformedShape(bg), pb, null, null);
 			cgList.add(cb);
 		}
 
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(scaledShape), textColor, 
+		PaintedShape c = new MyPaintedShape(createTransformedShape(scaledShape), textColor, 
 		                                    null, null);
 		cgList.add(c);
 	}
@@ -567,7 +575,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		int[] xCoords = new int[] { (int)pointB[0], (int)pointC[0], (int)pointA[0] };
 		int[] yCoords = new int[] { (int)pointB[1], (int)pointC[1], (int)pointA[1] };
 		Shape wedge = new Polygon(xCoords, yCoords, 3);
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(wedge), clr, null, null);
+		PaintedShape c = new MyPaintedShape(createTransformedShape(wedge), clr, null, null);
 		cgList.add(c);
 	}
 
@@ -600,8 +608,14 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			}
 		}
 
-		PaintedShape c = new MyPaintedShape(scaleTransform.createTransformedShape(path), clr, stroke, clr);
+		// PaintedShape c = new MyPaintedShape(createTransformedShape(path), clr, stroke, clr);
+		PaintedShape c = new MyPaintedShape(createTransformedShape(path), clr, null, null);
 		cgList.add(c);
+	}
+
+	private Shape createTransformedShape(Shape s) {
+		Shape t = scaleTransform.createTransformedShape(s);
+		return offsetTransform.createTransformedShape(t);
 	}
 
 }

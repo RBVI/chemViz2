@@ -84,7 +84,6 @@ final class MolGridDepiction extends Depiction {
 
         this.nCol = nCol;
         this.nRow = nRow;
-				System.out.println("MolGridDepiction has "+elements.size()+" elements");
     }
 
     @Override
@@ -195,7 +194,6 @@ final class MolGridDepiction extends Depiction {
             //  the width/height of this col/row can be determined by the next offset
             double x = xBase + col * padding + rescale * xOffset[col];
             double y = yBase + row * padding + rescale * yOffset[row];
-						System.out.println("Offset = "+x+","+y);
             double w = rescale * (xOffset[col+1] - xOffset[col]);
             double h = rescale * (yOffset[row+1] - yOffset[row]);
 

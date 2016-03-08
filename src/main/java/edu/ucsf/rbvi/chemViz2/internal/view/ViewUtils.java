@@ -131,12 +131,13 @@ public class ViewUtils {
 		double boxSize = 100.0;
 
 		DepictionGenerator generator = 
-					getDepictionGenerator((int)width, (int)height, (Color)background, false);
+					getDepictionGenerator((int)width, (int)height, (Color)background, false).
+		                            withPadding(1.5);
 
 		try {
 			double scale = Math.min(width/boxSize, height/boxSize);
 			Depiction depiction = generator.depict(reaction);
-			PaintedShapeVisitor v = new PaintedShapeVisitor(scale, background);
+			PaintedShapeVisitor v = new PaintedShapeVisitor(x, y, 1.0, background);
 			depiction.toShapes(v);
 			List<PaintedShape> shapes = v.getPaintedShapes();
 			return shapes;
@@ -151,14 +152,15 @@ public class ViewUtils {
 	                                              IAtomContainer mol, Paint background) {
 		if (mol == null) return null;
 
-		double boxSize = 100.0;
+		// double boxSize = 100.0;
 
 		DepictionGenerator generator = 
-					getDepictionGenerator((int)width, (int)height, (Color)background, false);
+					getDepictionGenerator((int)width, (int)height, (Color)background, false).
+		                            withPadding(1.5);
 		try {
-			double scale = Math.min(width/boxSize, height/boxSize);
+			// double scale = Math.min(width/boxSize, height/boxSize);
 			Depiction depiction = generator.depict(mol);
-			PaintedShapeVisitor v = new PaintedShapeVisitor(scale, background);
+			PaintedShapeVisitor v = new PaintedShapeVisitor(x, y, 1.0, background);
 			depiction.toShapes(v);
 			List<PaintedShape> shapes = v.getPaintedShapes();
 			return shapes;

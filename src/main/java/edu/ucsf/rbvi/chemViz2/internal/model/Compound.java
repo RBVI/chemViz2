@@ -325,7 +325,6 @@ public class Compound {
 		if (smilesStr == null)
 			return;
 
-		// TODO
 		// Look to see if this is a reaction
 		logger.info("smiles string = "+smilesStr);
 		if (smilesStr.matches(".*>.*>.*")) {
@@ -376,7 +375,8 @@ public class Compound {
 			} catch (CDKException e1) {
 				fingerPrint = null;
 			}
-		}
+		} else if (iMolecule != null)
+			compoundType = CompoundType.MOLECULE;
 	}
 
 	private String convertInchiToSmiles(String inchi) {

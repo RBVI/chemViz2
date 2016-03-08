@@ -70,6 +70,7 @@ import edu.ucsf.rbvi.chemViz2.internal.smsd.mcss.MCSS;
 import edu.ucsf.rbvi.chemViz2.internal.smsd.mcss.TaskUpdater;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
 
+import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesGenerator;
 
@@ -152,9 +153,12 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 	}
 
 	public String getMCSSSmiles() {
-		SmilesGenerator g = new SmilesGenerator();
-		g.setUseAromaticityFlag(true);
-		return g.createSMILES(mcss);
+		SmilesGenerator g = new SmilesGenerator().aromatic();
+		try {
+			return g.create(mcss);
+		} catch (CDKException c) {
+			return null;
+		}
 	}
 
 	/**
@@ -193,14 +197,27 @@ public class CalculateMCSSTask extends AbstractCompoundTask implements TaskUpdat
 
 		List<IAtomContainer> targetList = Collections.synchronizedList(new ArrayList<IAtomContainer>(compoundList.size()));
 		for (Compound c: compoundList) {
+			if (c.getCompoundType().equals(Compound.CompoundType.REACTION)) {
+				monitor.showMessage(TaskMonitor.Level.WARN, "Can't do MCSS on reactions.  Skipping "+c.toString());
+				continue;
+			}
 			if (c.getMolecule() != null)
 				targetList.add(c.getMolecule());
 		}
 
-		MCSS mcssJob = new MCSS(targetList, JobType.SINGLE, (TaskUpdater)this, nThreads);
-		Collection<IAtomContainer> calculatedMCSS = mcssJob.getCalculateMCSS();
-		if (calculatedMCSS != null && calculatedMCSS.size() == 1)
-			mcss = calculatedMCSS.iterator().next();
+		if (targetList.size() > 1) {
+			MCSS mcssJob = new MCSS(targetList, JobType.SINGLE, (TaskUpdater)this, nThreads);
+			Collection<IAtomContainer> calculatedMCSS = mcssJob.getCalculateMCSS();
+			if (calculatedMCSS != null && calculatedMCSS.size() == 1)
+				mcss = calculatedMCSS.iterator().next();
+		} else {
+			mcss = targetList.get(0);
+		}
+
+		if (mcss == null) {
+			monitor.showMessage(TaskMonitor.Level.ERROR, "No MCSS returned");
+			return;
+		}
 
 		calculationComplete = true;	
 		if (haveGUI && showResult) {
