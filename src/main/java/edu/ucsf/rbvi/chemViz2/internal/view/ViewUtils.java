@@ -21,8 +21,8 @@ import org.cytoscape.view.presentation.customgraphics.PaintedShape;
 
 import org.openscience.cdk.ChemModel;
 import org.openscience.cdk.ReactionSet;
-import org.openscience.cdk.depict.DepictionGenerator;
-import org.openscience.cdk.depict.Depiction;
+// import org.openscience.cdk.depict.DepictionGenerator;
+// import org.openscience.cdk.depict.Depiction;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IReaction;
@@ -44,6 +44,9 @@ import org.openscience.cdk.renderer.generators.IGenerator;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.renderer.generators.standard.StandardGenerator.Visibility;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
+
+import edu.ucsf.rbvi.chemViz2.internal.depict.Depiction;
+import edu.ucsf.rbvi.chemViz2.internal.depict.DepictionGenerator;
 
 public class ViewUtils {
 
@@ -92,9 +95,7 @@ public class ViewUtils {
 		}
 
 		int renderWidth = width;
-		// if (renderWidth < 200) renderWidth = 200;
 		int renderHeight = height;
-		// if (renderHeight < 200) renderHeight = 200;
 
 		DepictionGenerator generator = 
 					getDepictionGenerator(renderWidth, renderHeight, (Color)background, showLabel);
@@ -129,13 +130,21 @@ public class ViewUtils {
 
 		double boxSize = 100.0;
 
+		DepictionGenerator generator = 
+					getDepictionGenerator((int)width, (int)height, (Color)background, false);
+
 		try {
+			double scale = Math.min(width/boxSize, height/boxSize);
+			Depiction depiction = generator.depict(reaction);
+			PaintedShapeVisitor v = new PaintedShapeVisitor(scale, background);
+			depiction.toShapes(v);
+			List<PaintedShape> shapes = v.getPaintedShapes();
+			return shapes;
 		} catch (Exception e) {
 			// TODO: Log message
 			System.out.println("Unable to render molecule: "+e);
 			return null;
 		}
-		return null;
 	}
 
 	public static List<PaintedShape> createShapes(double x, double y, double width, double height,
@@ -144,6 +153,22 @@ public class ViewUtils {
 
 		double boxSize = 100.0;
 
+		DepictionGenerator generator = 
+					getDepictionGenerator((int)width, (int)height, (Color)background, false);
+		try {
+			double scale = Math.min(width/boxSize, height/boxSize);
+			Depiction depiction = generator.depict(mol);
+			PaintedShapeVisitor v = new PaintedShapeVisitor(scale, background);
+			depiction.toShapes(v);
+			List<PaintedShape> shapes = v.getPaintedShapes();
+			return shapes;
+		} catch (Exception e) {
+			// TODO: Log message
+			System.out.println("Unable to render molecule: "+e);
+			return null;
+		}
+
+/*
 		try {
 			AtomContainerRenderer renderer = getRenderer((Color)background);
 			double scale = Math.min(width/boxSize, height/boxSize);
@@ -157,6 +182,7 @@ public class ViewUtils {
 			System.out.println("Unable to render molecule: "+e);
 			return null;
 		}
+*/
 	}
 
 	private static Image blankImage(int width, int height) {

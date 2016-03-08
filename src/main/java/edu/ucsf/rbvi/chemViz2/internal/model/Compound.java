@@ -327,7 +327,7 @@ public class Compound {
 
 		// TODO
 		// Look to see if this is a reaction
-		logger.debug("smiles string = "+smilesStr);
+		logger.info("smiles string = "+smilesStr);
 		if (smilesStr.matches(".*>.*>.*")) {
 			// logger.error("Reactions are not supported, yet");
 			// return;

@@ -65,10 +65,10 @@ import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
-import org.openscience.cdk.depict.DepictionGenerator;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import edu.ucsf.rbvi.chemViz2.internal.depict.DepictionGenerator;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;

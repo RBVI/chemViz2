@@ -44,7 +44,7 @@ import org.openscience.cdk.renderer.elements.ElementGroup;
 import org.openscience.cdk.renderer.elements.GeneralPath;
 import org.openscience.cdk.renderer.elements.IRenderingElement;
 import org.openscience.cdk.renderer.elements.LineElement;
-// import org.openscience.cdk.renderer.elements.MarkedElement;
+import org.openscience.cdk.renderer.elements.MarkedElement;
 import org.openscience.cdk.renderer.elements.OvalElement;
 import org.openscience.cdk.renderer.elements.PathElement;
 import org.openscience.cdk.renderer.elements.RectangleElement;
@@ -103,8 +103,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		this.rendererModel = null;
 		cgList = new ArrayList<PaintedShape>();
 		map.put(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUB);
-		currentStroke = new BasicStroke(.5f);
-		strokeMap.put(0.5f, currentStroke);
+		currentStroke = new BasicStroke(1.0f/4.0f);
+		strokeMap.put(1.0f, currentStroke);
 		this.scaleTransform = AffineTransform.getScaleInstance(scale, scale);
 		// backgroundColor = view.getUnselectedPaint();
 		if (backgroundColor == null)
@@ -121,6 +121,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 
 	// IDrawVisitor implementation -- public methods
 	public void visit(IRenderingElement element) {
+		// System.err.println("Visitor method for "
+		//                     + element.getClass().getName() + " called");
 		Color savedColor = currentColor;
 		if (element instanceof ElementGroup)
 			visit((ElementGroup) element);
@@ -146,8 +148,8 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 			visit((ArrowElement) element);
 		else if (element instanceof Bounds)
 			visit((Bounds) element);
-		// else if (element instanceof MarkedElement)
-		// 	visit((MarkedElement) element);
+		else if (element instanceof MarkedElement)
+			visit(((MarkedElement) element).element());
 		else
 			System.err.println("Visitor method for "
 			                    + element.getClass().getName() + " is not implemented");
@@ -180,18 +182,21 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	}
 
 	private void visit(LineElement line) {
-		// System.out.println("LineElement");
 		float width = (float) (line.width * this.rendererModel.getParameter(Scale.class).getValue());
+		System.out.println("LineElement: width = "+width);
+		/*
 		if (width < 1) width = 1.0f;
 		width = width/2.0f;
+		*/
 		if (!strokeMap.containsKey(width)) 
-			strokeMap.put(width, new BasicStroke(width));
+			strokeMap.put(width, new BasicStroke(width/4.0f));
 		BasicStroke stroke = strokeMap.get(width);
 		double[] start = transform(line.firstPointX, line.firstPointY);
 		double[] end = transform(line.secondPointX, line.secondPointY);
 		Line2D lineShape = new Line2D.Double(start[0], start[1], end[0], end[1]);
 		Shape s = scaleTransform.createTransformedShape(lineShape);
 		PaintedShape layer = new MyPaintedShape(s, currentColor, stroke, null);
+		// PaintedShape layer = new MyPaintedShape(s, currentColor, null, null);
 		cgList.add(layer);
 	}
 
@@ -412,7 +417,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 
 		float w = (float) (line.width * scale);
 		if (!strokeMap.containsKey(w)) 
-			strokeMap.put(w, new BasicStroke(w));
+			strokeMap.put(w, new BasicStroke(w/4.0f));
 		BasicStroke stroke = strokeMap.get(w);
 
 		Path2D path = new Path2D.Double();
@@ -468,11 +473,9 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 		// Not sure we want to do anything here...
 	}
 
-	/* 
 	private void visit (MarkedElement element) {
 		// Not sure we want to do anything here...
 	}
-	*/
 
 	private double scaleX(double xCoord) {
 		return xCoord*transform.getScaleX();
@@ -570,7 +573,7 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 
 	private void drawDashedWedge(Point2d vertexA, Point2d vertexB, Point2d vertexC, Color clr) {
 		// store the current stroke
-		BasicStroke stroke = new BasicStroke(1);
+		BasicStroke stroke = new BasicStroke(1.0f/4.0f);
 		Path2D path = new Path2D.Double();
 
 		// calculate the distances between lines
