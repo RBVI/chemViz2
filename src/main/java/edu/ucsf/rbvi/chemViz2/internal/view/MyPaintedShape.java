@@ -38,7 +38,23 @@ public class MyPaintedShape implements PaintedShape {
 	public CustomGraphicLayer transform(AffineTransform xform) {
 		// System.out.println("Shape: "+toString()+" Got transform: "+xform);
 		Shape newBounds = xform.createTransformedShape(bounds);
-		MyPaintedShape mps = new MyPaintedShape(xform.createTransformedShape(shape), shapePaint, stroke, strokePaint);
+
+		// In general, it's a bad idea to allow our structures to stretch in strange ways...
+		// Make sure the transformation is isoscale
+		double[] matrix = new double[6];
+		xform.getMatrix(matrix);
+
+		double scale = matrix[0];
+		if (matrix[0] != matrix[3]) {
+			scale = Math.min(matrix[0], matrix[3]);
+		}
+
+		matrix[0] = scale;
+		matrix[3] = scale;
+
+		AffineTransform newXform = new AffineTransform(matrix);
+
+		MyPaintedShape mps = new MyPaintedShape(newXform.createTransformedShape(shape), shapePaint, stroke, strokePaint);
 		mps.bounds = newBounds.getBounds2D();
 		return mps;
 	}

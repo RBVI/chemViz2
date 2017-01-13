@@ -200,91 +200,91 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-interfaces</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-core</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-smiles</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-smarts</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-inchi</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-qsar</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-qsarmolecular</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-render</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderbasic</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderextra</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderawt</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-smsd</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-builder3d</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-fingerprint</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-silent</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<!--dependency>
@@ -296,7 +296,7 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-legacy</artifactId>
-			<version>1.5.12</version>
+			<version>1.5.14</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>

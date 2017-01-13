@@ -85,10 +85,6 @@ public class PaintedShapeVisitor implements IDrawVisitor {
 	private double yOffset;
 	private	Paint backgroundColor;
 
-	private float fitRatio = 0.9f;
-	// private final float minStroke;
-	// private final boolean strokeCache;
-
 	private Long id;
 	private String displayName = "chemViz";
 
