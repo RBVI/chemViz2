@@ -166,7 +166,8 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 	}
 
 	void addAttributeMenus(JMenu addMenu, CyTable attributes, String type, int column) {
-		Set<String> attNames = CyTableUtil.getColumnNames(attributes);
+		List<String> attNames = new ArrayList<String>(CyTableUtil.getColumnNames(attributes));
+		Collections.sort(attNames);
 		for (String att: attNames) {
 			if (tableModel.findColumn(att) < 0) {
 				addMenu.add(new AddMenu(att, type, column, TableUtils.getColumnType(attributes, att)));

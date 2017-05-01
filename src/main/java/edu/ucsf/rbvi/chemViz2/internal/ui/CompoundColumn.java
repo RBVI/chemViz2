@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
@@ -64,7 +65,10 @@ import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 
 public class CompoundColumn {
 
-	public enum ColumnType { ATTRIBUTE, DESCRIPTOR };
+	public enum ColumnType { 
+		ATTRIBUTE,  // A simple Cytoscape attribute
+		DESCRIPTOR // A chemical descriptor
+	};
 
 	private ColumnType columnType;
 	private String attributeName;
@@ -72,6 +76,7 @@ public class CompoundColumn {
 	private Descriptor descriptor;
 	private CyNetwork network;
 	private int columnWidth;
+	private List<Compound> compoundList;
 
 	public CompoundColumn(Descriptor descriptor, int width) {
 		this.columnType = ColumnType.DESCRIPTOR;
@@ -140,18 +145,44 @@ public class CompoundColumn {
 
 	public Object getValue(Compound cmpd) {
 		// Get the row so we can note whether we have nodes
-
 		if (columnType == ColumnType.ATTRIBUTE) {
 			CyIdentifiable obj = cmpd.getSource();
 			CyNetwork network = cmpd.getNetwork();
 			CyRow attributes = network.getRow(obj);
+			CyColumn column = attributes.getTable().getColumn(attributeName);
 
 			// Special case for "ID"
 			if (attributeName.equals("ID"))
 				return TableUtils.getName(network, obj);
 
-			if (attributeType == List.class)
-				return attributes.getList(attributeName, String.class);
+			if (attributeType == List.class) {
+				// Check to see if our compound attribute is a list
+				// and if this attribute is also a list.  If they
+				// are the same length, just reply with the value
+				// corresponding to the offset.
+				Class<?> listType = column.getListElementType();
+				List<?> list = attributes.getList(attributeName, listType);
+				if (list == null || list.size() <= 1) return list;
+
+				String compoundAttribute = cmpd.getAttribute();
+				Class<?> compoundType = attributes.getTable().getColumn(compoundAttribute).getType();
+				if (compoundType.equals(List.class)) {
+					// OK, we are a list > 1 and our compound attribute is a list.  See if the
+					// lengths match
+					List<String> compoundList = attributes.getList(compoundAttribute, String.class);
+					if (compoundList.size() == list.size()) {
+						// Sizes are equal, so now figure out which compound we have and
+						// return the appropriate values
+						int offset = 0;
+						for (String molString: compoundList) {
+							if (cmpd.getMoleculeString().equals(molString))
+								return list.get(offset);
+							offset++;
+						}
+					}
+				}
+				return attributes.getList(attributeName, listType);
+			}
 
 			return attributes.get(attributeName, attributeType);
 		} else if (columnType == ColumnType.DESCRIPTOR) {
