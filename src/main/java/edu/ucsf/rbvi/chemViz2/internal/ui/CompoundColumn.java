@@ -47,6 +47,8 @@ import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
 
+import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +63,7 @@ import org.cytoscape.model.CyRow;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 
 public class CompoundColumn {
@@ -73,6 +76,7 @@ public class CompoundColumn {
 	private ColumnType columnType;
 	private String attributeName;
 	private Class attributeType;
+	private Class listElementType = null;
 	private Descriptor descriptor;
 	private CyNetwork network;
 	private int columnWidth;
@@ -172,11 +176,35 @@ public class CompoundColumn {
 					List<String> compoundList = attributes.getList(compoundAttribute, String.class);
 					if (compoundList.size() == list.size()) {
 						// Sizes are equal, so now figure out which compound we have and
-						// return the appropriate values
+						// return the appropriate values, but first we need
+						// to set the listElementType
 						int offset = 0;
 						for (String molString: compoundList) {
-							if (cmpd.getMoleculeString().equals(molString))
-								return list.get(offset);
+							if (cmpd.getMoleculeString().equals(molString)) {
+								Object v = list.get(offset);
+								if (v != null) {
+									// Special handling for URL's and HTML
+									if (v instanceof String) {
+										String vStr = (String) v;
+										// OK, first check to see if it's an HTML string
+										if (vStr.startsWith("<html>")) {
+											listElementType = HTMLObject.class;
+											HTMLObject html = new HTMLObject();
+											html.setHTML(vStr);
+											v = html;
+										} else if (isValidURL(vStr)) {
+											listElementType = HTMLObject.class;
+											vStr = "<a href=\""+vStr+"\">"+vStr+"</a>";
+											v = new HTMLObject(vStr);
+										} else {
+											listElementType = String.class;
+										}
+									} else {
+										listElementType = list.get(offset).getClass();
+									}
+								}
+								return v;
+							}
 							offset++;
 						}
 					}
@@ -195,6 +223,8 @@ public class CompoundColumn {
 	public Class getColumnClass() {
 		if (columnType == ColumnType.DESCRIPTOR)
 			return descriptor.getClassType();
+		else if (attributeType == List.class && listElementType != null)
+			return listElementType;
 		else
 			return attributeType;
 	}
@@ -218,5 +248,14 @@ public class CompoundColumn {
 				writer.write(obj.toString());
 		}
 		return;
+	}
+
+	private boolean isValidURL(String urlString) {
+		try {
+			URL u = new URL(urlString);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }

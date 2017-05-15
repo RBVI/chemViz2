@@ -60,6 +60,7 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.ChemVizResultsPanel;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -186,6 +187,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 			if (s.startsWith(objType))
 				attributes.add(s.substring(5));
 		}
+
 		return attributes;
 	}
 
@@ -233,11 +235,13 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 			return null;
 
 		if (possibleAttributes == null) {
-			List<String> attributeNames = new ArrayList<String>();
-			attributeNames.add(CyNetwork.NAME);
-			getAttributes(attributeNames, network.getDefaultNodeTable(), "node.");
-			getAttributes(attributeNames, network.getDefaultEdgeTable(), "edge.");
-			possibleAttributes = attributeNames;
+			List<String> nodeAttributeNames = new ArrayList<String>();
+			List<String> edgeAttributeNames = new ArrayList<String>();
+			nodeAttributeNames.add(CyNetwork.NAME);
+			getAttributes(nodeAttributeNames, network.getDefaultNodeTable(), "node.");
+			getAttributes(edgeAttributeNames, network.getDefaultEdgeTable(), "edge.");
+			nodeAttributeNames.addAll(edgeAttributeNames);
+			possibleAttributes = nodeAttributeNames;
 		}
 
 		return possibleAttributes;
@@ -256,6 +260,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 				names.add(prefix+s);
 			}
 		}
+		Collections.sort(names);
 	}
 
 	private List<String> getMatchingAttributes(CyTable table, List<String> compoundAttributes) {

@@ -112,6 +112,7 @@ import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemInfoTableModel;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn;
@@ -119,6 +120,7 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn.ColumnType;
 import edu.ucsf.rbvi.chemViz2.internal.ui.TableMouseAdapter;
 
 import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.CompoundRenderer;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLRenderer;
 import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.StringRenderer;
 
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -238,6 +240,7 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		table.setDefaultRenderer(Compound.class, new CompoundRenderer(sorter, rowMap));
 		table.setDefaultRenderer(String.class, new StringRenderer());
+		table.setDefaultRenderer(HTMLObject.class, new HTMLRenderer());
 
 		// Figure out all of our default column widths
 		columnModel = table.getColumnModel();
@@ -255,11 +258,11 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		table.setRowHeight(rowHeight);
 
 		// Add our mouse listener (specific for 2D image popup)
-		table.addMouseListener(mouseAdapter);
+		// table.addMouseListener(mouseAdapter);
 
 		// Add our row selection listener
-		selectionModel = table.getSelectionModel();
-		selectionModel.addListSelectionListener(this);
+		// selectionModel = table.getSelectionModel();
+		// selectionModel.addListSelectionListener(this);
 
 		JScrollPane pane = new JScrollPane(table);
 		pane.setPreferredSize(new Dimension(500+TableAttributeHandler.DEFAULT_IMAGE_SIZE+20,520));

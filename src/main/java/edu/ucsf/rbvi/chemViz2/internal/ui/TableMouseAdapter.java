@@ -38,6 +38,7 @@ package edu.ucsf.rbvi.chemViz2.internal.ui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Frame;
@@ -53,6 +54,8 @@ import java.awt.event.MouseEvent;
 
 import java.io.IOException;
 
+import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,18 +66,17 @@ import java.util.Set;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.JTable;
 import javax.swing.table.TableRowSorter;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
+import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemInfoTableModel;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLRenderer;
 
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
@@ -96,8 +98,50 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 		this.network = tableModel.getNetwork();
 	}
 
+	void processMouseEvent(MouseEvent e) {
+		try {
+			Point p = e.getPoint();
+			int row = sorter.convertRowIndexToModel(table.rowAtPoint(p));
+			int column = table.convertColumnIndexToModel(table.columnAtPoint(p));
+			if (tableModel.getColumnClass(column) == HTMLObject.class) {
+				HTMLRenderer c = (HTMLRenderer)table.getCellRenderer(row, column);
+				c.processMouseEvent(e); // Pass the mouse event
+			}
+		} catch (Exception ex) {
+			// Probably out-of-bounds
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		processMouseEvent(e);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		processMouseEvent(e);
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		processMouseEvent(e);
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		processMouseEvent(e);
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		processMouseEvent(e);
+	}
+
+	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 2 && e.getComponent() == table)
+		if (e.getClickCount() == 1 && e.getComponent() == table) {
+			processMouseEvent(e);
+		} else if (e.getClickCount() == 2 && e.getComponent() == table)
 		{
 			Point p = e.getPoint();
 			// int row = table.convertRowIndexToModel(table.rowAtPoint(p));
@@ -115,6 +159,19 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 					}
 				};
 				new Thread(t).start();
+			} else if (tableModel.getColumnClass(column) == HTMLObject.class) {
+				HTMLRenderer c = (HTMLRenderer)table.getCellRenderer(row, column);
+				c.processMouseEvent(e); // Pass the mouse event
+
+				/*
+				final HTMLObject value = (HTMLObject)tableModel.getValueAt(row, column);
+				try {
+					Desktop.getDesktop().browse(new URI(value.toString()));
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				*/
+
 			}
 		} else if (e.getComponent() == table.getTableHeader() && 
 		           ((e.getButton() == MouseEvent.BUTTON3) ||
