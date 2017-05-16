@@ -35,6 +35,7 @@
 
 package edu.ucsf.rbvi.chemViz2.internal.ui.renderers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.Point;
@@ -52,10 +53,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
@@ -65,7 +66,6 @@ import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
 import org.cytoscape.model.CyIdentifiable;
 
 public class CompoundRenderer implements TableCellRenderer {
-	private final DefaultTableCellRenderer adaptee = new DefaultTableCellRenderer();
 
 	private Map<CyIdentifiable,List<Integer>> rowMap;
 	private TableRowSorter sorter;
@@ -81,13 +81,12 @@ public class CompoundRenderer implements TableCellRenderer {
 		int row = sorter.convertRowIndexToModel(viewRow);
 		int column = table.convertColumnIndexToModel(viewColumn);
 
-		adaptee.getTableCellRendererComponent(table, value, isSelected, hasFocus, viewRow, viewColumn);
 		Compound c = (Compound)table.getModel().getValueAt(row, column);
 		TableColumn clm = table.getColumnModel().getColumn(viewColumn);
 		int width = clm.getPreferredWidth();
 		if (width != table.getRowHeight())
 			table.setRowHeight(width); // Note, this will trigger a repaint!
-		Image resizedImage = c.getImage(width,width,adaptee.getBackground());
+		Image resizedImage = c.getImage(width,width,Color.WHITE);
 		JLabel l;
 		if (resizedImage != null)
 			l = new JLabel(new ImageIcon(resizedImage));
@@ -97,9 +96,14 @@ public class CompoundRenderer implements TableCellRenderer {
 			rowMap.put(c.getSource(), new ArrayList<Integer>());
 		}
 
+		// Paint border
+		if (isSelected) {
+			l.setBorder(BorderFactory.createEtchedBorder());
+		} else {
+			l.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
+		}
+
 		rowMap.get(c.getSource()).add(Integer.valueOf(row));
-		l.setBackground(adaptee.getBackground());
-		l.setForeground(adaptee.getForeground());
 		return l;
 	}
 }

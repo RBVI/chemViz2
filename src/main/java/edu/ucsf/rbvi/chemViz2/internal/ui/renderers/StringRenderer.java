@@ -35,15 +35,16 @@
 
 package edu.ucsf.rbvi.chemViz2.internal.ui.renderers;
 
+import java.awt.Color;
 import java.awt.Component;
 
+import javax.swing.BorderFactory;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 public class StringRenderer extends JTextArea implements TableCellRenderer {
-	private final DefaultTableCellRenderer adaptee = new DefaultTableCellRenderer();
 
 	public StringRenderer () {
 		setLineWrap(true);
@@ -51,13 +52,14 @@ public class StringRenderer extends JTextArea implements TableCellRenderer {
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 	                                        boolean hasFocus, int row, int column) {
-		adaptee.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-		setBackground(adaptee.getBackground());
-		setBorder(adaptee.getBorder());
-		setFont(adaptee.getFont());
-		setText(adaptee.getText());
-		setForeground(adaptee.getForeground());
+		// Paint border
+		if (isSelected) {
+			this.setBorder(BorderFactory.createEtchedBorder());
+		} else {
+			this.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
+		}
+		setBackground(Color.WHITE);
+		setText(value.toString());
 		return this;
 	}
 }

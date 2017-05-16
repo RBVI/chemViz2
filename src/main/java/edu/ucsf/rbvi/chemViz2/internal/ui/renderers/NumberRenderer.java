@@ -37,57 +37,33 @@ package edu.ucsf.rbvi.chemViz2.internal.ui.renderers;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Desktop;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
-import java.net.URI;
+import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
-import javax.swing.JTextPane;
-import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.JTable;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
-import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
+public class NumberRenderer extends JTextField implements TableCellRenderer {
 
-public class HTMLRenderer extends JTextPane implements TableCellRenderer {
-	public HTMLRenderer () {
-		super();
+	public NumberRenderer () {
 	}
 
-	public Component getTableCellRendererComponent(JTable table, final Object value, boolean isSelected,
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 	                                        boolean hasFocus, int row, int column) {
 		// Paint border
 		if (isSelected) {
 			this.setBorder(BorderFactory.createEtchedBorder());
 		} else {
-			this.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
+			this.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
 		}
-		this.setContentType("text/html");
-		this.setText(value.toString());
-		this.addHyperlinkListener(new MyHyperlinkListener());
-		this.setEditable(false);
-		this.setEnabled(true);
-		this.setBackground(Color.WHITE);
+		setBackground(Color.WHITE);
+
+		// Set alignment
+		setHorizontalAlignment(JTextField.RIGHT);
+		// Set format
+		setText(NumberFormat.getInstance().format((Number)value));
 		return this;
-	}
-
-	public void processMouseEvent(MouseEvent e) {
-		e.setSource(this);
-		super.processMouseEvent(e);
-	}
-
-	class MyHyperlinkListener implements HyperlinkListener {
-		public void hyperlinkUpdate(HyperlinkEvent e) {
-			System.out.println("hyperlink: "+e);
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				System.out.println("Hyperlink: "+e.getDescription());
-			}
-		}
 	}
 }

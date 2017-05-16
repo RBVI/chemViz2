@@ -48,6 +48,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -85,6 +87,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -120,7 +123,11 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn.ColumnType;
 import edu.ucsf.rbvi.chemViz2.internal.ui.TableMouseAdapter;
 
 import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.CompoundRenderer;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLEditor;
 import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLRenderer;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.NumberEditor;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.NumberRenderer;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.StringEditor;
 import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.StringRenderer;
 
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -230,17 +237,26 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 			tableModel.addColumn(column++, c);
 		}
 
-		MouseAdapter mouseAdapter = new TableMouseAdapter(table, tableModel, sorter);
 		tableHeader = table.getTableHeader();
-		tableHeader.addMouseListener(mouseAdapter);
+		tableHeader.addMouseListener(new TableHeaderMouseAdapter(table, tableModel, sorter));
 		TableCellRenderer renderer = tableHeader.getDefaultRenderer();
 		((DefaultTableCellRenderer)renderer).setHorizontalAlignment(SwingConstants.CENTER);
 		// sorter.setTableHeader(tableHeader);
 
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+
+		// Set up our custom renderers
 		table.setDefaultRenderer(Compound.class, new CompoundRenderer(sorter, rowMap));
 		table.setDefaultRenderer(String.class, new StringRenderer());
+		table.setDefaultEditor(String.class, new StringEditor());
 		table.setDefaultRenderer(HTMLObject.class, new HTMLRenderer());
+		table.setDefaultEditor(HTMLObject.class, new HTMLEditor());
+		table.setDefaultRenderer(Long.class, new NumberRenderer());
+		table.setDefaultRenderer(Integer.class, new NumberRenderer());
+		table.setDefaultRenderer(Double.class, new NumberRenderer());
+		table.setDefaultEditor(Long.class, new NumberEditor());
+		table.setDefaultEditor(Integer.class, new NumberEditor());
+		table.setDefaultEditor(Double.class, new NumberEditor());
 
 		// Figure out all of our default column widths
 		columnModel = table.getColumnModel();
@@ -258,7 +274,7 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		table.setRowHeight(rowHeight);
 
 		// Add our mouse listener (specific for 2D image popup)
-		// table.addMouseListener(mouseAdapter);
+		table.addMouseListener(new TableMouseAdapter(table, tableModel, sorter));
 
 		// Add our row selection listener
 		// selectionModel = table.getSelectionModel();

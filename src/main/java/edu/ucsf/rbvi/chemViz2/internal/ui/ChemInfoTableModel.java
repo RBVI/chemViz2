@@ -46,6 +46,7 @@ import javax.swing.table.AbstractTableModel;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
+import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn;
 
 import org.cytoscape.model.CyEdge;
@@ -126,6 +127,11 @@ public class ChemInfoTableModel extends AbstractTableModel {
 
 	public CompoundColumn getColumnAt(int columnIndex) {
 		return columns.get(columnIndex);
+	}
+
+	public boolean isCellEditable(int row, int col) {
+		// Class columnType = columns.get(col).getColumnClass();
+		return true;
 	}
 
 	private void updateNodesAndEdges() {

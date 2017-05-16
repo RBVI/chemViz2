@@ -85,7 +85,7 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 
-class TableMouseAdapter extends MouseAdapter implements ActionListener {
+class TableMouseAdapter extends MouseAdapter {
 	private	TableRowSorter sorter;
 	private JTable table;
 	private ChemInfoTableModel tableModel;
@@ -112,6 +112,7 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 		}
 	}
 
+	/*
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		processMouseEvent(e);
@@ -136,6 +137,7 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 	public void mouseReleased(MouseEvent e) {
 		processMouseEvent(e);
 	}
+	*/
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
@@ -173,112 +175,7 @@ class TableMouseAdapter extends MouseAdapter implements ActionListener {
 				*/
 
 			}
-		} else if (e.getComponent() == table.getTableHeader() && 
-		           ((e.getButton() == MouseEvent.BUTTON3) ||
-		            (e.getButton() == MouseEvent.BUTTON1 && e.isMetaDown()) ||
-		            (e.getButton() == MouseEvent.BUTTON1 && e.isControlDown()))) {
-			// Popup header context menu
-			JPopupMenu headerMenu = new JPopupMenu();
-			// Get our column title
-			Point p = e.getPoint();
-			int column = table.convertColumnIndexToModel(table.columnAtPoint(p));
-			String name = tableModel.getColumnName(column);
-			// Add removeMenu if we have more than 1 column
-			if (tableModel.getColumnCount() > 1) {
-				JMenuItem removeMenu = new JMenuItem("Remove Column "+name);
-				removeMenu.setActionCommand("removeColumn:"+column);
-				removeMenu.addActionListener(this);
-				headerMenu.add(removeMenu);
-			}
-			JMenu addMenu = new JMenu("Add New Column");
-			JMenu attrMenu = new JMenu("Cytoscape attributes");
-			if (tableModel.hasNodes()) {
-				addAttributeMenus(attrMenu, network.getDefaultNodeTable(), "node.", column);
-			}
-			if (tableModel.hasEdges()) {
-				addAttributeMenus(attrMenu, network.getDefaultEdgeTable(), "edge.", column);
-			}
-			if (attrMenu.getItemCount() > 0) 
-				addMenu.add(attrMenu);
-
-			JMenu descMenu = new JMenu("Molecular descriptors");
-			addDescriptorMenus(descMenu, column);
-			if (descMenu.getItemCount() > 0) 
-				addMenu.add(descMenu);
-
-			headerMenu.add(addMenu);
-			headerMenu.show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().startsWith("removeColumn:")) {
-			String columnNumber = e.getActionCommand().substring(13);
-			int column = Integer.parseInt(columnNumber);
-			tableModel.removeColumn(column);
-		} else if (e.getActionCommand().startsWith("addColumn:")) {
-			String columnNumber = e.getActionCommand().substring(10);
-			int column = Integer.parseInt(columnNumber);
-		}
-	}
-
-	void addAttributeMenus(JMenu addMenu, CyTable attributes, String type, int column) {
-		List<String> attNames = new ArrayList<String>(CyTableUtil.getColumnNames(attributes));
-		Collections.sort(attNames);
-		for (String att: attNames) {
-			if (tableModel.findColumn(att) < 0) {
-				addMenu.add(new AddMenu(att, type, column, TableUtils.getColumnType(attributes, att)));
-			}
-		}
-	}
-
-	void addDescriptorMenus(JMenu addMenu, int column) {
-		List<Descriptor> descList = tableModel.getSettings().getDescriptorManager().getDescriptorList(true);
-		for (Descriptor type: descList) {
-			if (tableModel.findColumn(type.toString()) < 0) {
-				addMenu.add(new AddMenu(type, column));
-			}
-		}
-	}
-
-	class AddMenu extends JMenuItem implements ActionListener {
-		int column;
-		CompoundColumn newColumn;
-		Descriptor descType;
-		
-		AddMenu(String name, int column) {
-			this(name, "", column, String.class);
-		}
-	
-		AddMenu(String name, String prefix, int column, Class type) {
-			super(prefix+name);
-			this.newColumn = new CompoundColumn(name, network, type, -1);
-			this.column = column;
-			this.descType = null;
-			addActionListener(this);
-		}
-	
-		AddMenu(Descriptor descriptor, int column) {
-			super(descriptor.toString());
-			this.descType = descriptor;
-			if (descriptor.getClassType() != Map.class)
-				this.newColumn = new CompoundColumn(descriptor, -1);
-			this.column = column;
-			addActionListener(this);
-		}
-	
-		public void actionPerformed(ActionEvent e) {
-			if (newColumn != null)
-				tableModel.addColumn(column, newColumn);
-			else if (descType.getClassType() == Map.class) {
-				List<String> descList = descType.getDescriptorList();
-				for (String desc: descList) {
-					// Only add the column if we don't already have it in the table...
-					Descriptor descriptor = tableModel.getSettings().getDescriptorManager().getDescriptor(desc);
-					if (descriptor != null && !tableModel.containsColumn(descriptor.toString()))
-						tableModel.addColumn(column, new CompoundColumn(descriptor, -1));
-				}
-			}
-		}
-	}
 }

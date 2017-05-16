@@ -114,16 +114,23 @@ public class CompoundColumn {
 				throw new RuntimeException("Unknown descriptor: "+words[1]);
 			columnWidth = Integer.parseInt(words[2]);
 		} else if (words[0].equals("ATTRIBUTE")) {
-			if (words.length != 5)
+			if (words.length != 4 && words.length != 5)
 				throw new RuntimeException("Illegal column specification: "+attributeString);
 			columnType = ColumnType.ATTRIBUTE;
 			attributeName = words[1];
 			try {
-				attributeType = Class.forName(words[3]);
+				attributeType = Class.forName(words[2]);
 			} catch (ClassNotFoundException e) {
-				throw new RuntimeException("Can't find class '"+words[3]+"': "+e.getMessage());
+				throw new RuntimeException("Can't find class '"+words[2]+"': "+e.getMessage());
 			}
-			columnWidth = Integer.parseInt(words[4]);
+			if (attributeType.equals(List.class) && words.length == 5) {
+				try {
+					listElementType = Class.forName(words[4]);
+				} catch (ClassNotFoundException e) {
+					throw new RuntimeException("Can't find class '"+words[4]+"': "+e.getMessage());
+				}
+			}
+			columnWidth = Integer.parseInt(words[3]);
 		} else {
 			throw new RuntimeException("Illegal column specification: "+attributeString);
 		}
@@ -143,7 +150,10 @@ public class CompoundColumn {
 		if (columnType == ColumnType.DESCRIPTOR) {
 			return "DESCRIPTOR:"+descriptor.toString()+","+columnWidth;
 		} else {
-			return "ATTRIBUTE:"+attributeName+","+attributeType.getName()+","+columnWidth;
+			if (attributeType.equals(List.class) && listElementType != null)
+				return "ATTRIBUTE:"+attributeName+","+attributeType.getName()+","+columnWidth+","+listElementType.getName();
+			else
+				return "ATTRIBUTE:"+attributeName+","+attributeType.getName()+","+columnWidth;
 		}
 	}
 
