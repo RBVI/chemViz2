@@ -42,8 +42,11 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
+
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
 
 public class StringEditor extends AbstractCellEditor implements TableCellEditor {
 	private final JTextArea component;
@@ -52,16 +55,16 @@ public class StringEditor extends AbstractCellEditor implements TableCellEditor 
 		component = new JTextArea();
 		component.setEditable(false);
 		component.setLineWrap(true);
+		component.setBackground(Color.WHITE);
 	}
 
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
 	                                             int row, int column) {
 		// Paint border
-		if (isSelected) {
-			component.setBorder(BorderFactory.createEtchedBorder());
-		} else {
-			component.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
-		}
+		component.setBorder(CompoundTable.SELECTED_BORDER);
+		// Border inner = BorderFactory.createLineBorder(Color.CYAN, 1);
+		// component.setBorder(BorderFactory.createCompoundBorder(inner,CompoundTable.SELECTED_BORDER));
+
 		component.setText(value.toString());
 		return component;
 	}

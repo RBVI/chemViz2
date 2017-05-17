@@ -62,6 +62,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound;
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
 
 import org.cytoscape.model.CyIdentifiable;
 
@@ -98,9 +99,9 @@ public class CompoundRenderer implements TableCellRenderer {
 
 		// Paint border
 		if (isSelected) {
-			l.setBorder(BorderFactory.createEtchedBorder());
+			l.setBorder(CompoundTable.SELECTED_BORDER);
 		} else {
-			l.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
+			l.setBorder(CompoundTable.CELL_BORDER);
 		}
 
 		rowMap.get(c.getSource()).add(Integer.valueOf(row));

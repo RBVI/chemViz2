@@ -54,6 +54,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
 
 public class HTMLRenderer extends JTextPane implements TableCellRenderer {
 	public HTMLRenderer () {
@@ -62,32 +63,18 @@ public class HTMLRenderer extends JTextPane implements TableCellRenderer {
 
 	public Component getTableCellRendererComponent(JTable table, final Object value, boolean isSelected,
 	                                        boolean hasFocus, int row, int column) {
-		// Paint border
-		if (isSelected) {
-			this.setBorder(BorderFactory.createEtchedBorder());
-		} else {
-			this.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
-		}
 		this.setContentType("text/html");
 		this.setText(value.toString());
-		this.addHyperlinkListener(new MyHyperlinkListener());
 		this.setEditable(false);
 		this.setEnabled(true);
-		this.setBackground(Color.WHITE);
+		this.setOpaque(true);
+
+		if (isSelected) {
+			this.setBorder(CompoundTable.SELECTED_BORDER);
+		} else {
+			this.setBorder(CompoundTable.CELL_BORDER);
+		}
 		return this;
 	}
 
-	public void processMouseEvent(MouseEvent e) {
-		e.setSource(this);
-		super.processMouseEvent(e);
-	}
-
-	class MyHyperlinkListener implements HyperlinkListener {
-		public void hyperlinkUpdate(HyperlinkEvent e) {
-			System.out.println("hyperlink: "+e);
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				System.out.println("Hyperlink: "+e.getDescription());
-			}
-		}
-	}
 }

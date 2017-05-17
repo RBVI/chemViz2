@@ -44,6 +44,8 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
+
 public class StringRenderer extends JTextArea implements TableCellRenderer {
 
 	public StringRenderer () {
@@ -52,13 +54,14 @@ public class StringRenderer extends JTextArea implements TableCellRenderer {
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 	                                        boolean hasFocus, int row, int column) {
+		this.setBackground(Color.WHITE);
+
 		// Paint border
 		if (isSelected) {
-			this.setBorder(BorderFactory.createEtchedBorder());
+			this.setBorder(CompoundTable.SELECTED_BORDER);
 		} else {
-			this.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
+			this.setBorder(CompoundTable.CELL_BORDER);
 		}
-		setBackground(Color.WHITE);
 		setText(value.toString());
 		return this;
 	}

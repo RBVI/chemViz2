@@ -46,12 +46,15 @@ import javax.swing.BorderFactory;
 import javax.swing.JTextPane;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.border.Border;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.HTMLObject;
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
+import edu.ucsf.rbvi.chemViz2.internal.ui.MyHyperlinkListener;
 
 public class HTMLEditor extends AbstractCellEditor implements TableCellEditor {
 	private final JTextPane component;
@@ -63,18 +66,18 @@ public class HTMLEditor extends AbstractCellEditor implements TableCellEditor {
 
 	public Component getTableCellEditorComponent(JTable table, final Object value, boolean isSelected,
 	                                             int row, int column) {
-		// Paint border
-		if (isSelected) {
-			component.setBorder(BorderFactory.createEtchedBorder());
-		} else {
-			component.setBorder(BorderFactory.createEmptyBorder(1,1,1,1));
-		}
 		component.setContentType("text/html");
 		component.setText(value.toString());
 		// component.addMouseListener(this);
 		component.addHyperlinkListener(new MyHyperlinkListener());
 		component.setEditable(false);
 		component.setEnabled(true);
+		component.setOpaque(true);
+
+		component.setBorder(CompoundTable.SELECTED_BORDER);
+		// Border inner = BorderFactory.createLineBorder(Color.CYAN, 1);
+		// component.setBorder(BorderFactory.createCompoundBorder(inner,CompoundTable.SELECTED_BORDER));
+
 		return component;
 	}
 
@@ -82,19 +85,8 @@ public class HTMLEditor extends AbstractCellEditor implements TableCellEditor {
 		return component.getText();
 	}
 
-	class MyHyperlinkListener implements HyperlinkListener {
-		public void hyperlinkUpdate(HyperlinkEvent e) {
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				if (Desktop.isDesktopSupported()) {
-					try {
-						Desktop.getDesktop().browse(e.getURL().toURI());
-					} catch(Exception ex) {
-						System.err.println("Unable to launch browser");
-					}
-				} else {
-					System.out.println("Desktop not supported");
-				}
-			}
-		}
+	public void requestFocus() {
+		component.requestFocusInWindow();
 	}
+
 }

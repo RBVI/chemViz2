@@ -85,6 +85,8 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionListener;
@@ -103,6 +105,7 @@ import javax.swing.table.TableRowSorter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
@@ -152,6 +155,9 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 
 	private	List<CompoundColumn> columns;
 	private	List<Compound> compoundList;
+
+	public static Border SELECTED_BORDER = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
+	public static Border CELL_BORDER = BorderFactory.createBevelBorder(BevelBorder.RAISED);
 
 	public CompoundTable (CyNetwork network, List<Compound> compoundList, 
 	                      List<String> columnList, ChemInfoSettings settings) {
@@ -277,8 +283,8 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		table.addMouseListener(new TableMouseAdapter(table, tableModel, sorter));
 
 		// Add our row selection listener
-		// selectionModel = table.getSelectionModel();
-		// selectionModel.addListSelectionListener(this);
+		selectionModel = table.getSelectionModel();
+		selectionModel.addListSelectionListener(this);
 
 		JScrollPane pane = new JScrollPane(table);
 		pane.setPreferredSize(new Dimension(500+TableAttributeHandler.DEFAULT_IMAGE_SIZE+20,520));
@@ -337,6 +343,9 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 				CyIdentifiable obj = c.getSource();
 				network.getRow(obj).set(CyNetwork.SELECTED, true);
 			}
+
+			// flush payload events
+			settings.getServiceRegistrar().getService(CyEventHelper.class).flushPayloadEvents();
 			modifyingSelection = false;
 		}
 	}
@@ -348,9 +357,7 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 	 * @param event the network selection event
 	 */
 	public void handleEvent(RowsSetEvent event) {
-		if (modifyingSelection) return;
-
-		if (!event.containsColumn(CyNetwork.SELECTED))
+		if (!event.containsColumn(CyNetwork.SELECTED) || modifyingSelection)
 			return;
 
 		modifyingSelection = true;

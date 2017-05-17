@@ -73,8 +73,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -360,13 +358,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		final OpenBrowser ob = openBrowser;
 		JEditorPane textArea = new JEditorPane("text/html", null);
 		textArea.setEditable(false);
-		textArea.addHyperlinkListener(new HyperlinkListener() {
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					ob.openURL(e.getURL().toString());
-				}
-			}
-		});
+		textArea.addHyperlinkListener(new MyHyperlinkListener());
 
 		String message = "<h2 style=\"margin-left: 5px;margin-bottom: 0px;\">CrossLinks</h2>";
 		message += "<table style=\"margin-left: 10px;margin-top: 0px;\"><tr><td><a href=\""+PUBCHEM+compound.getMoleculeString()+"\">PubChem</a></td>";

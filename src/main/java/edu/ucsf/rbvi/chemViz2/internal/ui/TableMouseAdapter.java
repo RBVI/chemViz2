@@ -76,7 +76,7 @@ import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemInfoTableModel;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundPopup;
-import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLRenderer;
+import edu.ucsf.rbvi.chemViz2.internal.ui.renderers.HTMLEditor;
 
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
@@ -98,52 +98,27 @@ class TableMouseAdapter extends MouseAdapter {
 		this.network = tableModel.getNetwork();
 	}
 
-	void processMouseEvent(MouseEvent e) {
-		try {
-			Point p = e.getPoint();
-			int row = sorter.convertRowIndexToModel(table.rowAtPoint(p));
-			int column = table.convertColumnIndexToModel(table.columnAtPoint(p));
-			if (tableModel.getColumnClass(column) == HTMLObject.class) {
-				HTMLRenderer c = (HTMLRenderer)table.getCellRenderer(row, column);
-				c.processMouseEvent(e); // Pass the mouse event
-			}
-		} catch (Exception ex) {
-			// Probably out-of-bounds
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		Point p = e.getPoint();
+		int row = sorter.convertRowIndexToModel(table.rowAtPoint(p));
+		int column = table.convertColumnIndexToModel(table.columnAtPoint(p));
+		System.out.format("%d,%d\n",row,column);
+		if (row < 0 || column < 0) return;
+
+		System.out.format("%d,%d\n",row,column);
+
+		// We do this so our hyperlinks work without first selecting
+		// the row
+		if (tableModel.getColumnClass(column).equals(HTMLObject.class)) {
+			System.out.println("Requesting focus");
+			((HTMLEditor)table.getCellEditor(row, column)).requestFocus();
 		}
 	}
 
-	/*
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		processMouseEvent(e);
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		processMouseEvent(e);
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		processMouseEvent(e);
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		processMouseEvent(e);
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		processMouseEvent(e);
-	}
-	*/
-
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 1 && e.getComponent() == table) {
-			processMouseEvent(e);
-		} else if (e.getClickCount() == 2 && e.getComponent() == table)
+		if (e.getClickCount() == 2 && e.getComponent() == table)
 		{
 			Point p = e.getPoint();
 			// int row = table.convertRowIndexToModel(table.rowAtPoint(p));
@@ -161,19 +136,6 @@ class TableMouseAdapter extends MouseAdapter {
 					}
 				};
 				new Thread(t).start();
-			} else if (tableModel.getColumnClass(column) == HTMLObject.class) {
-				HTMLRenderer c = (HTMLRenderer)table.getCellRenderer(row, column);
-				c.processMouseEvent(e); // Pass the mouse event
-
-				/*
-				final HTMLObject value = (HTMLObject)tableModel.getValueAt(row, column);
-				try {
-					Desktop.getDesktop().browse(new URI(value.toString()));
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-				*/
-
 			}
 		}
 	}

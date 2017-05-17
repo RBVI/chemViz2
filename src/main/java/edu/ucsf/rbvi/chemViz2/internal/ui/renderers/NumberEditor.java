@@ -43,8 +43,11 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 import javax.swing.JTable;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
+
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
 
 public class NumberEditor extends AbstractCellEditor implements TableCellEditor {
 	private final JTextField component;
@@ -56,13 +59,13 @@ public class NumberEditor extends AbstractCellEditor implements TableCellEditor 
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
 	                                             int row, int column) {
 		// Paint border
-		if (isSelected) {
-			component.setBorder(BorderFactory.createEtchedBorder());
-		} else {
-			component.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
-		}
+		component.setBorder(CompoundTable.SELECTED_BORDER);
+		// Border inner = BorderFactory.createLineBorder(Color.CYAN, 1);
+		// component.setBorder(BorderFactory.createCompoundBorder(inner,CompoundTable.SELECTED_BORDER));
+
 		component.setText(NumberFormat.getInstance().format((Number)value));
 		component.setEditable(false);
+		component.setBackground(Color.WHITE);
 
 		// Set alignment
 		component.setHorizontalAlignment(JTextField.RIGHT);
