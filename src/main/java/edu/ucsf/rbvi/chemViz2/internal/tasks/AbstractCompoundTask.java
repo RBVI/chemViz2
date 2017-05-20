@@ -182,13 +182,14 @@ abstract public class AbstractCompoundTask extends AbstractTask {
 			
 		if (attrType == String.class) {
 			String cstring = TableUtils.getAttribute(network, go, attr, String.class);
-			if (cstring == null) return null;
+			if (cstring == null || cstring.length() == 0) return null;
 			cList.addAll(getCompounds(go, network, attr, cstring, type, threadList));
 		} else if (attrType == List.class) {
 			List<String> stringList = TableUtils.getListAttribute(network, go, attr, String.class);
 			if (stringList == null || stringList.size() == 0) return null;
 			for (String cstring: stringList) {
-				cList.addAll(getCompounds(go, network, attr, cstring, type, threadList));
+				if (cstring != null && cstring.length() > 0)
+					cList.addAll(getCompounds(go, network, attr, cstring, type, threadList));
 				if (done()) break;
 			}
 		}

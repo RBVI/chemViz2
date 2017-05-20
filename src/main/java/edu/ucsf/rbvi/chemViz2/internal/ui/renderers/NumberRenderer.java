@@ -65,6 +65,11 @@ public class NumberRenderer extends JTextField implements TableCellRenderer {
 
 		// Set alignment
 		setHorizontalAlignment(JTextField.RIGHT);
+		if (value == null) {
+			System.out.println("Value at: "+row+","+column+" is null!");
+			return this;
+		}
+
 		// Set format
 		setText(NumberFormat.getInstance().format((Number)value));
 		return this;

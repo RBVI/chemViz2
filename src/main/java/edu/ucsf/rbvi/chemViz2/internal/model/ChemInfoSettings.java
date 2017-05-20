@@ -194,6 +194,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	// At this point, we should only react to columns changed
 	// in our current network.  If a new column is created
 	// in a different network, we'll pick that up in the SetCurrentNetworkListener
+	@Override
 	public void handleEvent(ColumnCreatedEvent e) {
 		if (this.network == null) return;
 		if (e.getSource().equals(this.network.getDefaultEdgeTable()) ||
@@ -203,10 +204,12 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		}
 	}
 
+	@Override
 	public void handleEvent(SetCurrentNetworkEvent e) {
 		this.network = e.getNetwork();
 		possibleAttributes = null;
 		updateAttributes(network);
+		updateSettings(getSettings(this.network));
 	}
 
 	public ChemVizResultsPanel getResultsPanel() {
@@ -320,6 +323,83 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 			s.setSelectedValues(selectedValues);
 
 		return s;
+	}
+
+	private String getAttributeList(ListMultipleSelection<String> values) {
+		String result = null;
+		for (String s: values.getSelectedValues()) {
+			if (result == null) 
+				result = s;
+			else
+				result += ","+s;
+		}
+		return result;
+	}
+
+	private void setAttributeList(String[] attributes, ListMultipleSelection<String> attrs) {
+		List<String> attrList = Arrays.asList(attributes);
+		if (attrList != null && attrList.size() > 0)
+			attrs.setSelectedValues(attrList);
+	}
+
+	private void updateSettings(String settings) {
+		String[] values = settings.split(";");
+		for (String setting: values) {
+			String[] nv = setting.split("=");
+			if (nv[0].equals("maxCompounds")) {
+				maxCompounds = Integer.parseInt(nv[1]); 
+			} else if (nv[0].equals("maxThreads")) {
+				maxThreads = Integer.parseInt(nv[1]); 
+			} else if (nv[0].equals("nodeStructureSize")) {
+				nodeStructureSize = Integer.parseInt(nv[1]); 
+			} else if (nv[0].equals("tcCutoff")) {
+				tcCutoff = Double.parseDouble(nv[1]); 
+			} else if (nv[0].equals("fingerprinter")) {
+				String fp = nv[1];
+				for (Fingerprinter f: fingerprintList) {
+					if (f.toString().equals(fp)) {
+						fingerprinter.setSelectedValue(f);
+					}
+				}
+			} else if (nv[0].equals("labelAttribute")) {
+				labelAttribute.setSelectedValue(nv[1]);
+			} else if (nv[0].equals("smilesAttributes")) {
+				setAttributeList(nv[1].split(","),smilesAttributes);
+			} else if (nv[0].equals("inChiAttributes")) {
+				setAttributeList(nv[1].split(","),inChiAttributes);
+			}
+		}
+	}
+
+	public String getSettingsString() {
+		String settings = "maxCompounds="+maxCompounds+";maxThreads="+maxThreads+";nodeStructureSize="+nodeStructureSize;
+		settings += ";tcCutoff="+tcCutoff+";fingerprinter="+fingerprinter.getSelectedValue().toString();
+		settings += ";labelAttribute="+labelAttribute.getSelectedValue();
+		settings += ";smilesAttributes="+getAttributeList(smilesAttributes);
+		settings += ";inChiAttributes="+getAttributeList(inChiAttributes);
+		return settings;
+	}
+
+	private static String SETTINGS_COLUMN = "__ChemVizSettings";
+
+	public void saveSettings() {
+		CyNetwork currentNetwork = manager.getCurrentNetwork();
+		CyTable netTable = currentNetwork.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		if (!TableUtils.columnExists(netTable, SETTINGS_COLUMN)) {
+			netTable.createColumn(SETTINGS_COLUMN, String.class, false);
+		}
+		netTable.getRow(currentNetwork.getSUID()).set(SETTINGS_COLUMN, getSettingsString());
+	}
+
+	public String getSettings(CyNetwork network) {
+		if (network == null) 
+			return null;
+		CyTable netTable = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
+		if (!TableUtils.columnExists(netTable, SETTINGS_COLUMN)) {
+			System.out.println("Can't find column");
+			return null;
+		}
+		return netTable.getRow(network.getSUID()).get(SETTINGS_COLUMN, String.class);
 	}
 
 }
