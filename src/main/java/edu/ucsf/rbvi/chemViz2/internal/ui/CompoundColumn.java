@@ -157,6 +157,22 @@ public class CompoundColumn {
 		}
 	}
 
+	public boolean equals(CompoundColumn column) {
+		if (columnType != column.columnType) return false;
+		if (columnType == ColumnType.DESCRIPTOR && !descriptor.equals(column.descriptor))
+			return false;
+		if (columnType == ColumnType.ATTRIBUTE) {
+			if (!attributeType.equals(column.attributeType))
+				return false;
+			if (attributeType.equals(List.class) && listElementType != null && 
+			    !listElementType.equals(column.listElementType))
+				return false;
+			if (!attributeName.equals(column.attributeName))
+				return false;
+		}
+		return true;
+	}
+
 	public Object getValue(Compound cmpd) {
 		// Get the row so we can note whether we have nodes
 		if (columnType == ColumnType.ATTRIBUTE) {

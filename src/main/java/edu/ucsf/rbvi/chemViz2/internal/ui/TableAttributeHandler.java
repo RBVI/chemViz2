@@ -46,19 +46,20 @@ import javax.swing.table.TableColumnModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
+import org.cytoscape.model.CyTable;
 
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemInfoTableModel;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundColumn;
 
 public class TableAttributeHandler {
 
-	private JTable table;
-	private ChemInfoTableModel model;
-	private CyNetwork network;
 	public static int DEFAULT_IMAGE_SIZE=80;
 	private static String tableAttribute = "_ChemVizTable";
 	private static String tableWidthAttribute = "_ChemVizTableWidth";
@@ -98,19 +99,55 @@ public class TableAttributeHandler {
 		return columns;
 	}
 
-	public static void setTableAttributes(JTable table, ChemInfoTableModel model, CyNetwork network) {
-		CyRow networkAttribute = network.getRow(network, CyNetwork.HIDDEN_ATTRS);
-
-		TableColumnModel columnModel = table.getColumnModel();
-		List<String> columnAttributes = new ArrayList();
-		for (int column = 0; column < columnModel.getColumnCount(); column++) {
-			TableColumn c = columnModel.getColumn(column);
-			CompoundColumn cc = model.getColumnAt(column);
-			// Update our width first
-			cc.setWidth(c.getWidth());
-			columnAttributes.add(cc.toString());
+	public static void addColumnAttributes(CyNetwork network, DescriptorManager manager, List<String> attributes) {
+		List<CompoundColumn> columns = getAttributes(network, manager);
+		for (String attr: attributes) {
+			CyTable table;
+			if (attr.startsWith("node."))
+				table = network.getDefaultNodeTable();
+			else
+				table = network.getDefaultEdgeTable();
+			Class columnType = TableUtils.getColumnType(table, attr.substring(5));
+			CompoundColumn newColumn = new CompoundColumn(attr.substring(5), network, columnType, -1);
+			addNewColumn(network, columns, newColumn);
 		}
+		updateTableAttributes(network, columns);
+	}
 
+	public static void addColumnDescriptors(CyNetwork network, DescriptorManager manager, List<Descriptor> descriptors) {
+		List<CompoundColumn> columns = getAttributes(network, manager);
+		for (Descriptor d: descriptors) {
+			if (d == null) continue;
+			CompoundColumn newColumn;
+			if (d.getShortName().equals("image"))
+				newColumn = new CompoundColumn(d, DEFAULT_IMAGE_SIZE);
+			else
+				newColumn = new CompoundColumn(d, -1);
+			addNewColumn(network, columns, newColumn);
+		}
+		updateTableAttributes(network, columns);
+	}
+
+	public static void addNewColumn(CyNetwork network, 
+	                                List<CompoundColumn> columns, CompoundColumn newColumn) {
+		// Only add the column to the list if we don't already have it
+		boolean found = false;
+		List<String> columnAttributes = new ArrayList<String>();
+		for (CompoundColumn c: columns) {
+			if (c.equals(newColumn)) {
+				return;
+			}
+		}
+		columns.add(newColumn);
+	}
+
+	public static void updateTableAttributes(CyNetwork network, List<CompoundColumn> columns) {
+		CyRow networkAttribute = network.getRow(network, CyNetwork.HIDDEN_ATTRS);
+		List<String> columnAttributes = new ArrayList<String>();
+		for (CompoundColumn c: columns) {
+			System.out.println("Column: "+c.toString());
+			columnAttributes.add(c.toString());
+		}
 		try {
 			networkAttribute.getTable().createListColumn(tableAttribute, String.class, false);
 		} catch (IllegalArgumentException e) {
@@ -118,6 +155,21 @@ public class TableAttributeHandler {
 		}
 
 		networkAttribute.set(tableAttribute, columnAttributes);
+	}
+
+	public static void setTableAttributes(JTable table, ChemInfoTableModel model, CyNetwork network) {
+		CyRow networkAttribute = network.getRow(network, CyNetwork.HIDDEN_ATTRS);
+
+		TableColumnModel columnModel = table.getColumnModel();
+		List<CompoundColumn> columns = new ArrayList<>();
+		for (int column = 0; column < columnModel.getColumnCount(); column++) {
+			TableColumn c = columnModel.getColumn(column);
+			CompoundColumn cc = model.getColumnAt(column);
+			// Update our width first
+			cc.setWidth(c.getWidth());
+		}
+
+		updateTableAttributes(network, columns);
 	}
 
 	public static void setSizeAttributes(JDialog dialog, CyNetwork network) {

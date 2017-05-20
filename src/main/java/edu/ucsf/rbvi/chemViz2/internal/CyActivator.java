@@ -36,6 +36,7 @@ import static org.cytoscape.work.ServiceProperties.*;
 import edu.ucsf.rbvi.chemViz2.internal.model.ChemInfoSettings;
 import edu.ucsf.rbvi.chemViz2.internal.model.CompoundManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.AddTableColumnsTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemInfoSettingsTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateMCSSTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateEdgeMCSSTaskFactory;
@@ -377,6 +378,16 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, settingsTaskFactory, TaskFactory.class, settingsMenuProperties);
 		registerService(bc, settingsTaskFactory, ChemInfoSettingsTaskFactory.class, 
 		                settingsMenuProperties);
+
+		// Command only task factories
+		AddTableColumnsTaskFactory addColumnsTaskFactory = new AddTableColumnsTaskFactory(settings);
+		Properties addColumnsProperties = new Properties();
+		addColumnsProperties.setProperty(ID, "addTableColumnsTaskFactory");
+		addColumnsProperties.setProperty(COMMAND, "addTableColumns");
+		addColumnsProperties.setProperty(COMMAND_NAMESPACE, "chemviz");
+		addColumnsProperties.setProperty(COMMAND_DESCRIPTION, "Add new columns to the compound table");
+		addColumnsProperties.setProperty(IN_MENU_BAR, "false");
+		registerService(bc, addColumnsTaskFactory, TaskFactory.class, addColumnsProperties);
 
 		logger.info("ChemViz2 started");
 	}

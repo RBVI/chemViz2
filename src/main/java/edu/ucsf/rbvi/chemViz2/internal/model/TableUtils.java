@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.model.CyTableUtil;
 
+@SuppressWarnings("rawtypes")
 public class TableUtils {
 	static public String getName(CyNetwork network, CyIdentifiable id) {
 		if (network == null || id == null)
@@ -65,6 +69,26 @@ public class TableUtils {
 		CyColumn column = row.getTable().getColumn(columnName);
 		if (column == null || column.getListElementType() != type) return returnList;
 		return row.getList(columnName, type);
+	}
+
+	static public List<String> getColumnNames(CyNetwork network, Class<? extends CyIdentifiable> type) {
+		CyTable table = null;
+		String prefix = "";
+		if (type.equals(CyNode.class)) {
+			table = network.getDefaultNodeTable();
+			prefix = "node.";
+		} else if (type.equals(CyEdge.class)) {
+			table = network.getDefaultEdgeTable();
+			prefix = "edge.";
+		} else if (type.equals(CyNetwork.class)) {
+			table = network.getDefaultNetworkTable();
+			prefix = "network.";
+		}
+		List<String> results = new ArrayList<String>();
+		for (String columnName: CyTableUtil.getColumnNames(table)) {
+			results.add(prefix+columnName);
+		}
+		return results;
 	}
 
 	static public boolean columnExists(CyTable table, String columnName) {
