@@ -125,7 +125,10 @@ public class TanimotoScorerTask extends AbstractCompoundTask {
 	                          VisualMappingManager visualManager,
 	                          ChemInfoSettings settings, boolean newNetwork) {
 		super(settings);
-		this.argNetwork = networkView.getModel();
+		if (networkView != null)
+			this.argNetwork = networkView.getModel();
+		else
+			this.argNetwork = null;
 		this.objectList = objectList;
 		this.settings = settings;
 		this.createNewNetwork = newNetwork;
@@ -144,6 +147,7 @@ public class TanimotoScorerTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, and compute the tanimoto values
  	 */
 	public void run(TaskMonitor taskMonitor) {
+		if (argNetwork == null) return;
 		CyNetwork newNetwork = null;
 
 		if (network == null && argNetwork == null)
