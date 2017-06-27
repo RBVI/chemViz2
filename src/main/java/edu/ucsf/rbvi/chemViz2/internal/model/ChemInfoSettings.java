@@ -396,7 +396,6 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 			return null;
 		CyTable netTable = network.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 		if (!TableUtils.columnExists(netTable, SETTINGS_COLUMN)) {
-			System.out.println("Can't find column");
 			return null;
 		}
 		return netTable.getRow(network.getSUID()).get(SETTINGS_COLUMN, String.class);
