@@ -207,6 +207,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	@Override
 	public void handleEvent(SetCurrentNetworkEvent e) {
 		this.network = e.getNetwork();
+		if (this.network == null) return;
 		possibleAttributes = null;
 		updateAttributes(network);
 		updateSettings(getSettings(this.network));
@@ -343,6 +344,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	}
 
 	private void updateSettings(String settings) {
+		if (settings == null) return;
 		String[] values = settings.split(";");
 		for (String setting: values) {
 			String[] nv = setting.split("=");

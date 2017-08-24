@@ -13,6 +13,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.cytoscape.application.CyUserLog;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 
@@ -63,7 +64,7 @@ public class Compound {
 	public static long totalSMILESTime = 0L;
 	public static long totalGetFPTime = 0L;
 
-	static private Logger logger = LoggerFactory.getLogger(Compound.class);
+	static private Logger logger = LoggerFactory.getLogger(CyUserLog.NAME);
 	static private Fingerprinter fingerprinter = Fingerprinter.PUBCHEM;
 
 	// Instance variables
@@ -386,7 +387,9 @@ public class Compound {
 			if (!inchi.startsWith("InChI="))
 				inchi = "InChI="+inchi;
 
-			logger.debug("Getting structure for: "+inchi);
+			inchi = inchi+"\n";
+
+			logger.info("Getting structure for: "+inchi);
 
 			InChIToStructure intostruct = factory.getInChIToStructure(inchi, SilentChemObjectBuilder.getInstance());
 
