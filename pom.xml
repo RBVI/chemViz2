@@ -6,7 +6,7 @@
 		<bundle.namespace>edu.ucsf.rbvi.chemViz2.internal</bundle.namespace>
 		<cytoscape.api.version>3.9.0</cytoscape.api.version>
 		
-		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
+		<maven-bundle-plugin.version>5.1.2</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
 		<cdk.version>2.7.1</cdk.version>
 		<jna-inchi.version>1.1</jna-inchi.version>
