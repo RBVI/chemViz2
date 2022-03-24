@@ -18,15 +18,8 @@
  */
 package edu.ucsf.rbvi.chemViz2.internal.depict;
 
-import com.google.common.base.Charsets;
-import org.openscience.cdk.renderer.RendererModel;
-import org.openscience.cdk.renderer.elements.Bounds;
-import org.openscience.cdk.renderer.elements.IRenderingElement;
-import org.openscience.cdk.renderer.font.AWTFontManager;
-import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
-import org.openscience.cdk.renderer.visitor.IDrawVisitor;
+import static edu.ucsf.rbvi.chemViz2.internal.depict.DepictionGenerator.AUTOMATIC;
 
-import javax.imageio.ImageIO;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -34,12 +27,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static edu.ucsf.rbvi.chemViz2.internal.depict.DepictionGenerator.AUTOMATIC;
+import javax.imageio.ImageIO;
+
+import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.elements.Bounds;
+import org.openscience.cdk.renderer.elements.IRenderingElement;
+import org.openscience.cdk.renderer.font.AWTFontManager;
+import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
+import org.openscience.cdk.renderer.visitor.IDrawVisitor;
 
 /**
  * Base class of a pre-rendered depiction. The class allows introspection of
@@ -212,11 +213,11 @@ public abstract class Depiction {
      */
     public final void writeTo(String fmt, OutputStream out) throws IOException {
         if (fmt.equalsIgnoreCase(SVG_FMT)) {
-            out.write(toSvgStr().getBytes(Charsets.UTF_8));
+            out.write(toSvgStr().getBytes(StandardCharsets.UTF_8));
         } else if (fmt.equalsIgnoreCase(PS_FMT)) {
-            out.write(toEpsStr().getBytes(Charsets.UTF_8));
+            out.write(toEpsStr().getBytes(StandardCharsets.UTF_8));
         } else if (fmt.equalsIgnoreCase(PDF_FMT)) {
-            out.write(toPdfStr().getBytes(Charsets.UTF_8));
+            out.write(toPdfStr().getBytes(StandardCharsets.UTF_8));
         } else {
             ImageIO.write(toImg(), fmt, out);
         }
