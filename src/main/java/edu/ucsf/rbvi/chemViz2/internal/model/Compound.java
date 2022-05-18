@@ -200,6 +200,7 @@ public class Compound {
 
 	public void layoutStructure() {
 		if (!laidOut) {
+			if (compoundType == null) {} else
 			if (compoundType.equals(CompoundType.MOLECULE)) {
 				if (iMolecule == null)
 					return;
