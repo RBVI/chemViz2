@@ -353,7 +353,7 @@ final class SvgDrawVisitor implements IDrawVisitor {
     private void visit(MarkedElement elem) {
         String id = elem.getId();
         List<String> classes = elem.getClasses();
-        String cls = classes.isEmpty() ? null : Joiner.on(" ").join(classes);
+        String cls = classes.isEmpty() ? null : String.join(" ", classes);
 
         IRenderingElement marked = elem.element();
 
