@@ -272,16 +272,16 @@
 			<version>${cdk.version}</version>
 			<optional>true</optional>
 		</dependency>
-        <dependency>
-            <groupId>io.github.dan2097</groupId>
-            <artifactId>jna-inchi-api</artifactId>
-            <version>${jna-inchi.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.dan2097</groupId>
-            <artifactId>jna-inchi-core</artifactId>
-            <version>${jna-inchi.version}</version>
-        </dependency>
+                <dependency>
+                        <groupId>io.github.dan2097</groupId>
+                        <artifactId>jna-inchi-api</artifactId>
+                        <version>${jna-inchi.version}</version>
+                </dependency>
+		<dependency>
+			<groupId>io.github.dan2097</groupId>
+			<artifactId>jna-inchi-all</artifactId>
+			<version>${jna-inchi.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>xom</groupId>
 			<artifactId>xom</artifactId>
