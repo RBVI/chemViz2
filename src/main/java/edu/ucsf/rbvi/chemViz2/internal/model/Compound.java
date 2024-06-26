@@ -323,8 +323,9 @@ public class Compound {
 			}
 		}
 
-		if (smilesStr == null)
-			return;
+		if (smilesStr == null || smilesStr.equals("null")) {
+			throw new RuntimeException("No molecule definition for this node");
+		}
 
 		// Look to see if this is a reaction
 		logger.info("smiles string = "+smilesStr);
@@ -354,6 +355,7 @@ public class Compound {
 				try {
 					iMolecule = sp.parseSmiles(this.smilesStr);
 				} catch (InvalidSmilesException e2) {
+					logger.warn("Unable to parse SMILES: "+smilesStr+" for "+TableUtils.getName(network, source)+": "+e2.getMessage());
 					return;
 				}
 			}

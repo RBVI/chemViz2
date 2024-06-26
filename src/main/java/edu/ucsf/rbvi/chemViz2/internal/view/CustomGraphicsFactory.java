@@ -22,16 +22,26 @@ public class CustomGraphicsFactory implements CyCustomGraphicsFactory<PaintedSha
 
 	public CustomGraphicsFactory(ChemInfoSettings settings) {
 		this.settings = settings;
-		compoundManager = settings.getCompoundManager();;
+		compoundManager = settings.getCompoundManager();
 	}
 
 	public CyCustomGraphics<PaintedShape> getInstance(String input) {
+		if (input == null || input == "null")
+			return null;
+
+		System.out.println("input is not null");
+
 		// Do we have a compound? (assumes input is a SMILES string...)
 		Compound compound = compoundManager.getCompound(input);
 
 		// No, create one
 		if (compound == null) {
-			compound = new Compound(settings, null, null, null, input, AttriType.smiles);
+			System.out.println("compound is null");
+			try {
+				compound = new Compound(settings, null, null, null, input, AttriType.smiles);
+			} catch (RuntimeException e) {
+				return null;
+			}
 		}
 
 		compound.layoutStructure();

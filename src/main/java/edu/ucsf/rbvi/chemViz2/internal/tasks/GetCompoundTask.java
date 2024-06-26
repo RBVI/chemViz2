@@ -103,7 +103,11 @@ public class GetCompoundTask implements Callable<Compound> {
 
 	public Compound call() {
 		// System.out.println("Thread "+Thread.currentThread()+" fetching "+go+"["+attr+"]");
-		result = new Compound(settings, go, network, attr, cstring, type);
+		try {
+			result = new Compound(settings, go, network, attr, cstring, type);
+		} catch (RuntimeException e) {
+			result = null;
+		}
 		return result;
 	}
 
