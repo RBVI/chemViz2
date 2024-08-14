@@ -60,6 +60,8 @@ import edu.ucsf.rbvi.chemViz2.internal.tasks.SimilarityNetworkTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemVizAbstractTaskFactory.Scope;
 import edu.ucsf.rbvi.chemViz2.internal.view.CustomGraphicsFactory;
 
+import com.sun.jna.NativeLibrary;
+
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = 
 		LoggerFactory.getLogger(edu.ucsf.rbvi.chemViz2.internal.CyActivator.class);
@@ -72,6 +74,11 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	public void start(BundleContext bc) {
+		// System.loadLibrary("jnainchi");
+
+		Properties props = System.getProperties();
+		props.setProperty("jna.library.path", "/home/scooter/CytoscapeConfiguration/3/apps/installed/chemViz2-1.2.jar");
+
 		// We'll need the CyApplicationManager to get current network, etc.
 		CyApplicationManager cyApplicationManagerServiceRef = 
 			getService(bc,CyApplicationManager.class);

@@ -41,7 +41,8 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.CDKHydrogenAdder;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
-import net.sf.jniinchi.INCHI_RET;
+// import net.sf.jniinchi.INCHI_RET;
+import io.github.dan2097.jnainchi.InchiStatus;
 
 /**
  * The Compound class provides the main interface to molecule compounds.  A 
@@ -396,10 +397,10 @@ public class Compound {
 			InChIToStructure intostruct = factory.getInChIToStructure(inchi, SilentChemObjectBuilder.getInstance());
 
 			// Get the structure
-			INCHI_RET ret = intostruct.getReturnStatus();
-			if (ret == INCHI_RET.WARNING) {
+			InchiStatus ret = intostruct.getStatus();
+			if (ret == InchiStatus.WARNING) {
 				logger.warn("InChI warning: " + intostruct.getMessage());
-			} else if (ret != INCHI_RET.OKAY) {
+			} else if (ret != InchiStatus.SUCCESS) {
 				logger.warn("Structure generation failed: " + ret.toString()
      	               + " [" + intostruct.getMessage() + "]");
 				return null;
