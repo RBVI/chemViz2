@@ -24,7 +24,6 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.VisualLexicon;
-import org.cytoscape.view.model.VisualProperty;
 import org.cytoscape.view.presentation.RenderingEngineManager;
 import org.cytoscape.view.presentation.customgraphics.CyCustomGraphicsFactory;
 import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
@@ -60,7 +59,7 @@ import edu.ucsf.rbvi.chemViz2.internal.tasks.SimilarityNetworkTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemVizAbstractTaskFactory.Scope;
 import edu.ucsf.rbvi.chemViz2.internal.view.CustomGraphicsFactory;
 
-import com.sun.jna.NativeLibrary;
+import io.github.dan2097.jnainchi.JnaInchi;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = 
@@ -74,10 +73,25 @@ public class CyActivator extends AbstractCyActivator {
 	}
 
 	public void start(BundleContext bc) {
-		// System.loadLibrary("jnainchi");
 
-		Properties props = System.getProperties();
-		props.setProperty("jna.library.path", "/home/scooter/CytoscapeConfiguration/3/apps/installed/chemViz2-1.2.jar");
+		// Ensure initialization of JnaInchi happens with the right
+		// classloader. When loaded JnaInchi does not pass the
+		// classloader to the NativeLibrary loader. NativeLibrary then
+		// uses the thread context classloader to extract the native
+		// library. The native library is accessible from the bundle
+		// classloader as it is part of its classpath. That classloader
+		// is made the context classloader for loading JnaInchi.
+		ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
+		try {
+			Thread.currentThread().setContextClassLoader(CyActivator.class.getClassLoader());
+			// The System.out.printlns are not necessary, the
+			// method calls on JnaInchi are required to enforce
+			// classloading/initialization
+			System.out.println(JnaInchi.getJnaInchiVersion());
+			System.out.println(JnaInchi.getInchiLibraryVersion());
+		} finally {
+			Thread.currentThread().setContextClassLoader(ctxLoader);
+		}
 
 		// We'll need the CyApplicationManager to get current network, etc.
 		CyApplicationManager cyApplicationManagerServiceRef = 
