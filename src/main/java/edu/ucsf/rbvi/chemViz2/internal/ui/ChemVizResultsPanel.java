@@ -443,12 +443,15 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		return chunk+"\n"+wrap(string.substring(width,string.length()), width);
 	}
 
+	/**
+	 * Get the chembl id from pubchem
+	 **/
 	private String getChEMBLID(Compound compound) {
 		try {
 			// Get the SMILES string
 			String smiles = compound.getMoleculeString();
 			// Construct the query
-			URL query = new URL("https://www.ebi.ac.uk/chemblws/compounds/smiles/"+URLEncoder.encode(smiles, "UTF-8"));
+			URL query = new URL("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"+URLEncoder.encode(smiles, "UTF-8")+"/xrefs/RegistryID/JSON");
 			// System.out.println("Query = "+query.toString());
 
 			URLConnection connection = query.openConnection();
@@ -456,29 +459,20 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 	
 			String line;
-			StringBuilder xml = new StringBuilder();
+			StringBuilder json = new StringBuilder();
 			while ((line = in.readLine()) != null) {
-				// System.out.println("Line = "+line);
-				xml.append(line);
+				if (line.strip().contains("CHEMBL")) {
+					line = line.strip();
+					String chembl = line.split("\"")[1];
+					in.close();
+					return chembl;
+				}
 			}
 			in.close();
+			return null;
 
-			String response = xml.toString();
-			// System.out.println("xml = "+response);
-
-			// Find the ChEMBL ID
-			int start = response.indexOf("<chemblId>");
-			// System.out.println("Start = "+start);
-			if (start < 0) return null;
-	
-			start = start + 10;
-	
-			int end = response.indexOf("</chemblId>");
-			// System.out.println("end = "+end);
-			// System.out.println("id = "+xml.substring(start, end));
-			return xml.substring(start, end);
 		} catch (Exception e) { 
-			e.printStackTrace();
+			// e.printStackTrace();
 			return null;
 		}
 	}

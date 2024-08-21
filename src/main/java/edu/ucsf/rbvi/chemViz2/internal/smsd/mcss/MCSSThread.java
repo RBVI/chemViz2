@@ -107,6 +107,9 @@ final public class MCSSThread implements Callable<LinkedBlockingQueue<IAtomConta
 
         logger.debug("Calling MCSSTask " + taskNumber + " with " + mcssList.size() + " items");
         System.out.println("Calling MCSSTask " + taskNumber + " with " + mcssList.size() + " items");
+				for (IAtomContainer mol: mcssList) {
+					System.out.println("Compound: "+mol.toString());
+				}
         long startTime = Calendar.getInstance().getTimeInMillis();
         IAtomContainer querySeed = mcssList.get(0);
         long calcTime = startTime;
@@ -243,7 +246,6 @@ final public class MCSSThread implements Callable<LinkedBlockingQueue<IAtomConta
     private synchronized LinkedBlockingQueue<IAtomContainer> singleSolution() {
 
         logger.debug("Calling MCSSTask " + taskNumber + " with " + mcssList.size() + " items");
-        System.out.println("Calling MCSSTask " + taskNumber + " with " + mcssList.size() + " items");
         LinkedBlockingQueue<IAtomContainer> mcss = new LinkedBlockingQueue<IAtomContainer>();
         long startTime = Calendar.getInstance().getTimeInMillis();
         IAtomContainer querySeed = mcssList.get(0);
@@ -263,16 +265,19 @@ final public class MCSSThread implements Callable<LinkedBlockingQueue<IAtomConta
                         + " unique matches of size " + comparison.getFirstAtomMapping().getCount());
                 logger.debug("MCSS for task " + taskNumber + " has " + querySeed.getAtomCount() + " atoms, and " + querySeed.getBondCount() + " bonds");
                 logger.debug("Target for task " + taskNumber + " has " + target.getAtomCount() + " atoms, and " + target.getBondCount() + " bonds");
+								/*
                 System.out.println("comparison for task " + taskNumber + " has " + fragmentsFomMCS.size()
                         + " unique matches of size " + comparison.getFirstAtomMapping().getCount());
                 System.out.println("MCSS for task " + taskNumber + " has " + querySeed.getAtomCount() + " atoms, and " + querySeed.getBondCount() + " bonds");
                 System.out.println("Target for task " + taskNumber + " has " + target.getAtomCount() + " atoms, and " + target.getBondCount() + " bonds");
+								*/
                 long endCalcTime = Calendar.getInstance().getTimeInMillis();
                 logger.debug("Task " + taskNumber + " index " + index + " took " + (endCalcTime - calcTime) + "ms");
-                System.out.println("Task " + taskNumber + " index " + index + " took " + (endCalcTime - calcTime) + "ms");
+                // System.out.println("Task " + taskNumber + " index " + index + " took " + (endCalcTime - calcTime) + "ms");
                 calcTime = endCalcTime;
 
                 if (fragmentsFomMCS.isEmpty()) {
+										querySeed = null;
                     break;
                 }
                 querySeed = fragmentsFomMCS.iterator().next().getContainer();

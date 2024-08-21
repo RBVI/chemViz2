@@ -153,6 +153,9 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the table.
  	 */
 	public void run(TaskMonitor taskMonitor) {
+		if (network == null)
+			network = argNetwork;
+
 		if (objectList == null)
 			objectList = getObjectList(network, null, scope,
 		                             nodeList.getValue(), edgeList.getValue());
@@ -186,8 +189,17 @@ public class SMARTSSearchTask extends AbstractCompoundTask {
 			if (matches == null || matches.size() == 0)
 				return;
 
+			for (Compound cmpd: matches) {
+				CyIdentifiable source = cmpd.getSource();
+				network.getRow(source).set(CyNetwork.SELECTED, true);
+			}
+
+			// TODO: if the CompoundTable is shown, highlight the selected compounds
+			/*
 			if (haveGUI && showTable)
 				compoundTable = new CompoundTable(network, matches, columnList, settings);
+			*/
+
 		}
 	}
 
