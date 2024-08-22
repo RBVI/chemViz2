@@ -39,13 +39,19 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
 
 import java.awt.BorderLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -65,6 +71,8 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -84,6 +92,7 @@ import org.cytoscape.application.events.SetCurrentNetworkEvent;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -95,48 +104,46 @@ import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.Descriptor;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
-import edu.ucsf.rbvi.chemViz2.internal.model.descriptors.HTMLFormulaDescriptor;
-import edu.ucsf.rbvi.chemViz2.internal.model.descriptors.SmilesDescriptor;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateNodeMCSSTaskFactory;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemVizAbstractTaskFactory.Scope;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchNodesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.UpdateCompoundsTask;
 
 public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent, 
                                                            RowsSetListener, 
-                                                           SetCurrentNetworkListener,
-	                                                         ComponentListener {
-	private String panelName;
-	private String labelAttribute;
+                                                           SetCurrentNetworkListener {
+	private final Font iconFont;
+	private final Font labelFont;
+	private final Font textFont;
+	private final String panelName;
+	private final String labelAttribute;
+	private final ChemInfoSettings settings;
+	private final CompoundManager mgr;
 	private CyNetwork network;
 	private List<Compound> compoundList;
-	private CompoundManager mgr;
-	private ChemInfoSettings settings;
-	private Map<Component, Compound> imageMap;
 	private JScrollPane scrollPane;
-	private JPanel outerPanel;
-	private JSplitPane splitPane;
-	private OpenBrowser openBrowser;
+	private JPanel compoundsPanel;
 
 	private static final int LABEL_HEIGHT = 20;
 	enum LabelType {ATTRIBUTE, TEXT};
 
-	public ChemVizResultsPanel(ChemInfoSettings settings, String labelAttribute, 
-	                           String panelName) {
+	public ChemVizResultsPanel(final ChemInfoSettings settings, final String labelAttribute, 
+	                           final String panelName) {
 		this.panelName = panelName;
 		this.labelAttribute = labelAttribute;
 		this.settings = settings;
-		mgr = settings.getCompoundManager();
+
+		this.mgr = settings.getCompoundManager();
 		network = settings.getCurrentNetwork();
-		imageMap = new HashMap<Component, Compound>();
-		openBrowser = (OpenBrowser)settings.getServiceRegistrar().getService(OpenBrowser.class);
 
-    setLayout(new BorderLayout());
+		IconManager iconManager = settings.getServiceRegistrar().getService(IconManager.class);
+    iconFont = iconManager.getIconFont(17.0f);
+    labelFont = new Font("SansSerif", Font.BOLD, 10);
+    textFont = new Font("SansSerif", Font.PLAIN, 10);
 
-		outerPanel = new JPanel();
-		outerPanel.setSize(300, 400);
-
-    // scrollPane = new JScrollPane(outerPanel);
-    add(BorderLayout.CENTER, outerPanel);
 
 		updateSelection();
+		init();
 	}
 
 	@Override
@@ -170,7 +177,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		if (e.getNetwork() != null)
 			this.network = e.getNetwork();
 
-		updateSelection();
+		updateCompoundsPanel();
 	}
 
 	@Override
@@ -179,63 +186,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			return;
 
 		// It's a selection event and it's in our network
-		updateSelection();
-	}
-
-	@Override
-	public void componentHidden(ComponentEvent e) {}
-
-	@Override
-	public void componentMoved(ComponentEvent e) {}
-
-	@Override
-	public void componentShown(ComponentEvent e) {}
-
-	@Override
-	public void componentResized(ComponentEvent e) {
-		if (e.getComponent() instanceof JSplitPane) {
-			JSplitPane splitPane = (JSplitPane)e.getComponent();
-			return;
-		}
-
-		if (!(e.getComponent() instanceof JPanel)) 
-			return;
-
-		JPanel panel = (JPanel)e.getComponent();
-		Component[] components = panel.getComponents();
-
-		// Get our new width
-		int width = panel.getWidth()-10;
-		int height = panel.getHeight()-10;
-		JLabel labelComponent = null;
-
-		if (compoundList.size() > 1) {
-			// If we have two components, component 0 is the image and
-			// component 1 is the label
-			labelComponent = (JLabel)components[0];
-			height = height-LABEL_HEIGHT;
-		} else if (compoundList.size() == 1) {
-			labelComponent = (JLabel)components[1];
-			/*
-			if (width < height)
-				height = width;
-			else
-				width = height;
-
-			if (width > 310) {
-				width = 300;
-				height = 300;
-			}
-			*/
-		}
-
-		if (imageMap.containsKey(panel)) {
-			Image img = imageMap.get(panel).getImage(width,height, Color.WHITE);
-			if (img != null) {
-				labelComponent.setIcon(new ImageIcon(img));
-				labelComponent.setSize(width, height);
-			}
-		}
+		updateCompoundsPanel();
 	}
 
 	private void updateSelection() {
@@ -256,127 +207,132 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 				compoundList.addAll(c);
 		}
 
-		createPanel();
 	}
 
-	private void createPanel() {
-		int width = outerPanel.getWidth();
-		outerPanel.removeAll();
+	private void updateCompoundsPanel() {
+		if (compoundsPanel == null) return;
+    compoundsPanel.removeAll();
+    EasyGBC c = new EasyGBC();
 
-		int structureCount = compoundList.size();
-		if (structureCount == 0) {
-			outerPanel.repaint();
-			return;
-		}
+		updateSelection();
 
-		// If we only have one, provide HTML table
-		if (compoundList.size() == 1) {
-			addInfoPanel(width, compoundList.get(0));
-		} else {
-			// If we have multiple, show the structures
-			addGrid(width, structureCount);
+		for (Compound cmpd: compoundList) {
+			JPanel newPanel = createCompoundPanel(cmpd);
+			if (newPanel == null)
+				continue;
+			newPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+
+			compoundsPanel.add(newPanel, c.anchor("west").down().expandHoriz());
 		}
-		this.revalidate();
-		this.repaint();
-		if (compoundList.size() == 1) {
-			splitPane.setDividerLocation(0.5);
-			this.revalidate();
-		}
+    return ;
 	}
 
-	private void addGrid(int width, int structureCount) {
+	private void init() {
+		setLayout(new GridBagLayout());
 
-		// How many images do we have?
-		int nCols = (int)Math.sqrt((double)structureCount);
+    EasyGBC c = new EasyGBC();
 
-		GridLayout layout = new GridLayout(nCols, structureCount/nCols, 1, 1);
-		outerPanel.setLayout(layout);
+    JPanel controlPanel = createControlPanel();
+    controlPanel.setBorder(BorderFactory.createEmptyBorder(0,10,0,0));
+    add(controlPanel, c.anchor("west").down().noExpand());
 
-		for (Compound compound: compoundList) {
-			// Get the image
-			Image img = compound.getImage(width/nCols, width/nCols-LABEL_HEIGHT, Color.WHITE);
-			JPanel panel = new JPanel();
-			BoxLayout bl = new BoxLayout(panel, BoxLayout.Y_AXIS);
-			panel.setLayout(bl);
+    JPanel mainPanel = new JPanel();
+    {
+      mainPanel.setLayout(new GridBagLayout());
+      // mainPanel.setBackground(defaultBackground);
+      EasyGBC d = new EasyGBC();
 
-			JLabel label = new JLabel(new ImageIcon(img));
-			panel.add(label);
+      mainPanel.add(createCompoundsPanel(), d.down().anchor("west").expandHoriz());
+      mainPanel.add(new JLabel(""), d.down().anchor("west").expandBoth());
+    }
+    JScrollPane scrollPane = new JScrollPane(mainPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                             JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    add(scrollPane, c.down().anchor("west").expandBoth());
+  }
 
-			// label.setLocation(0, 0);
-			if (label != null) {
-				String textLabel = getLabel(compound, labelAttribute);
-			
-				JTextField tf = new JTextField(textLabel.toString());
-				tf.setHorizontalAlignment(JTextField.CENTER);
-				tf.setEditable(false);
-				tf.setBorder(null);
-				panel.add(tf);
-				tf.setSize(width/nCols, LABEL_HEIGHT);
-				// tf.setLocation(width/nCols, width/nCols-LABEL_HEIGHT);
-			}
-			panel.setBackground(Color.WHITE);
-			panel.setOpaque(true);
-			panel.setBorder(BorderFactory.createEtchedBorder());
-			panel.addComponentListener(this);
-			imageMap.put(panel, compound);
-			panel.setSize(width/nCols, width/nCols);
-			outerPanel.add(panel);
-		}
+	private JPanel createControlPanel() {
+		JPanel controlPanel = new JPanel();
+    EasyGBC d = new EasyGBC();
+    controlPanel.setLayout(new GridBagLayout());
+
+		EasyGBC upperGBC = new EasyGBC();
+		JPanel upperPanel = new JPanel(new GridBagLayout());
+    {
+			JCheckBox paintStructures = new JCheckBox("Paint Structures on Nodes");
+      paintStructures.setFont(labelFont);
+      paintStructures.setSelected(settings.getStructuresShown());
+      paintStructures.addItemListener(new ItemListener() {
+        public void itemStateChanged(ItemEvent e) {
+					System.out.println("Item changed");
+          settings.execute(
+            settings.getPaintNodeStructuresTaskFactory().createTaskIterator(settings.getCurrentNetworkView(), Scope.ALLNODES, settings.getStructuresShown()), true);
+        }
+      });
+      upperPanel.add(paintStructures, upperGBC.right().insets(0,10,0,0).noExpand());
+    }
+
+		controlPanel.add(upperPanel);
+
+		JPanel lowerPanel = new JPanel();
+    GridLayout layout2 = new GridLayout(1, 2);
+    // GridLayout layout2 = new GridLayout(3,2);
+    layout2.setVgap(0);
+    lowerPanel.setLayout(layout2);
+    {
+      JButton smartButton = new JButton("SMARTS");
+      smartButton.setToolTipText("SMARTS Search");
+      smartButton.setFont(labelFont);
+      lowerPanel.add(smartButton);
+      smartButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          SearchNodesTaskFactory tf = new SearchNodesTaskFactory(settings, true, Scope.ALLNODES);
+          settings.execute(tf.createTaskIterator(network), false);
+        }
+      });
+
+      JButton mcssButton = new JButton("MCSS");
+      mcssButton.setToolTipText("Maximum common substructure");
+      mcssButton.setFont(labelFont);
+      lowerPanel.add(mcssButton);
+      mcssButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+					CalculateNodeMCSSTaskFactory tf = 
+							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, Scope.ALLNODES);
+          settings.execute(tf.createTaskIterator(network), false);
+        }
+      });
+    }
+
+		controlPanel.add(lowerPanel, d.down().anchor("west").expandHoriz());
+
+		return controlPanel;
 	}
 
-	static String PUBCHEM = "http://pubchem.ncbi.nlm.nih.gov/search/search.cgi?cmd=search&q_type=dt&simp_schtp=fs&q_data=";
-	static String CHEMSPIDER = "http://www.chemspider.com/smiles?";
-	static String CHEMBL = "http://www.ebi.ac.uk/chembl/compound/inspect/";
+	private JPanel createCompoundsPanel() {
+    compoundsPanel = new JPanel();
+    compoundsPanel.setLayout(new GridBagLayout());
+    EasyGBC c = new EasyGBC();
 
-	private void addInfoPanel(int width, Compound compound) {
-    outerPanel.setLayout(new BorderLayout());
-		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-		splitPane.addComponentListener(this);
-		splitPane.setResizeWeight(0.5);
+    if (network != null) {
+      for (Compound cmpd: compoundList) {
+        JPanel newPanel = createCompoundPanel(cmpd);
+        if (newPanel == null)
+          continue;
+        newPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
-		{
-			JPanel structurePanel = new JPanel();
-			structurePanel.setBackground(Color.WHITE);
-			structurePanel.setOpaque(true);
-			String textLabel = getLabel(compound, labelAttribute);
-			BorderLayout bl2 = new BorderLayout();
-			structurePanel.setLayout(bl2);
-			JLabel tf = new JLabel(textLabel.toString(), JLabel.CENTER);
-			structurePanel.add(tf, BorderLayout.NORTH);
+        compoundsPanel.add(newPanel, c.anchor("west").down().expandHoriz());
+      }
+    }
+    compoundsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    return compoundsPanel;
+	}
 
-			// Now add our image
-			Image img = compound.getImage(width, width, Color.WHITE);
-			structurePanel.add(new JLabel(new ImageIcon(img)), BorderLayout.CENTER);
-			imageMap.put(structurePanel, compound);
-			structurePanel.setMinimumSize(new Dimension(100, 100+LABEL_HEIGHT));
-			structurePanel.setSize(width, width+LABEL_HEIGHT+10);
-			structurePanel.addComponentListener(this);
-			splitPane.setTopComponent(structurePanel);
-		}
-
-		// Finally, add the table
-		final OpenBrowser ob = openBrowser;
-		JEditorPane textArea = new JEditorPane("text/html", null);
-		textArea.setEditable(false);
-		textArea.addHyperlinkListener(new MyHyperlinkListener());
-
-		String message = "<h2 style=\"margin-left: 5px;margin-bottom: 0px;\">CrossLinks</h2>";
-		message += "<table style=\"margin-left: 10px;margin-top: 0px;\"><tr><td><a href=\""+PUBCHEM+compound.getMoleculeString()+"\">PubChem</a></td>";
-		message += "<td><a href=\""+CHEMSPIDER+compound.getMoleculeString()+"\">ChemSpider</a> </td>";
-		String chemblID = getChEMBLID(compound);
-		if (chemblID != null)
-			message += "<td><a href=\""+CHEMBL+chemblID+"\">ChEMBL</a> </td></tr></table>";
-		else
-			message += "</tr></table>";
-		
-		message += "<h2 style=\"margin-left: 5px;margin-bottom: 0px;\">Chemical Descriptor</h2>";
-		message = addDescriptors(message, compound, "htmlformula", "mass", "weight", "roff", "acceptors", "donors", "alogp2", "smiles");
-		textArea.setText(message);
-		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		splitPane.setBottomComponent(scrollPane);
-		outerPanel.add(BorderLayout.CENTER, splitPane);
+	private JPanel createCompoundPanel(Compound compound) {
+		JPanel compoundPanel = new CompoundResultPanel(settings, network, compound);
+    CollapsablePanel collapsablePanel = new CollapsablePanel(iconFont, getLabel(compound,labelAttribute), compoundPanel, false, 10);
+    collapsablePanel.setBorder(BorderFactory.createEtchedBorder());
+		return collapsablePanel;
 	}
 
 	private String getLabel(Compound compound, String labelAttribute) {
@@ -385,9 +341,9 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 		// Get the right attributes
 		if (labelAttribute != null && labelAttribute.startsWith("node.")) {
-			textLabel = labelAttribute.substring(5);
+			textLabel = "Node "+labelAttribute.substring(5);
 		} else if (labelAttribute != null && labelAttribute.startsWith("edge.")) {
-			textLabel = labelAttribute.substring(5);
+			textLabel = "Edge "+labelAttribute.substring(5);
 		} else if (labelAttribute == null) {
 			textLabel = CyNetwork.NAME;
 		} else if (labelAttribute != CyNetwork.NAME){
@@ -403,39 +359,6 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		return textLabel;
 	}
 
-	private String addDescriptors(String message, Compound compound, String... descriptors) {
-		DescriptorManager manager = settings.getDescriptorManager();
-		message += "<table style=\"margin-left: 10px;\">";
-		for (String descriptor: descriptors) {
-			Descriptor d;
-			if (descriptor.equals("htmlformula"))
-				d = new HTMLFormulaDescriptor();
-			else if (descriptor.equals("smiles"))
-				d = new SmilesDescriptor();
-			else
-				d = manager.getDescriptor(descriptor);
-			if (d == null) continue;
-			message += "<tr><td style=\"font-weight:bold;color:blue;\">"+d.toString()+"</td>";
-			if (descriptor.equals("smiles")) {
-				message += "<td></td></tr><tr><td colspan=\"2\" style=\"margin-left: 5px;\">"+wrap((String)d.getDescriptor(compound), 30)+"</td></tr>";
-			} else {
-				message += "<td style=\"text-align:right;\">"+getFormattedDescriptor(d, compound)+"</td></tr>";
-			}
-		}
-		message+="</table>";
-		return message;
-	}
-
-	private String getFormattedDescriptor(Descriptor d, Compound compound) {
-		Class type = d.getClassType();
-		Object value = d.getDescriptor(compound);
-		if (type.equals(Double.class)) {
-			DecimalFormat df = new DecimalFormat("#.##");
-			return df.format(value);
-		}
-		return value.toString();
-	}
-
 	private String wrap(String string, int width) {
 		if (string.length() <= width)
 			return string;
@@ -443,38 +366,4 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		return chunk+"\n"+wrap(string.substring(width,string.length()), width);
 	}
 
-	/**
-	 * Get the chembl id from pubchem
-	 **/
-	private String getChEMBLID(Compound compound) {
-		try {
-			// Get the SMILES string
-			String smiles = compound.getMoleculeString();
-			// Construct the query
-			URL query = new URL("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"+URLEncoder.encode(smiles, "UTF-8")+"/xrefs/RegistryID/JSON");
-			// System.out.println("Query = "+query.toString());
-
-			URLConnection connection = query.openConnection();
-			// Get the XML back
-			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	
-			String line;
-			StringBuilder json = new StringBuilder();
-			while ((line = in.readLine()) != null) {
-				if (line.strip().contains("CHEMBL")) {
-					line = line.strip();
-					String chembl = line.split("\"")[1];
-					in.close();
-					return chembl;
-				}
-			}
-			in.close();
-			return null;
-
-		} catch (Exception e) { 
-			// e.printStackTrace();
-			return null;
-		}
-	}
-			
 }

@@ -215,6 +215,7 @@ public class CyActivator extends AbstractCyActivator {
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.ALLNODES, true);
 			addMenus(bc, paintTaskFactory, menu, "from all nodes", "remove structures", "Remove 2D structures from nodes",
 			         Scope.ALLNODES, "networkAndView", "4.1", false);
+			settings.setPaintNodeStructuresTaskFactory((PaintNodeStructuresTaskFactory)paintTaskFactory);
 
 			paintTaskFactory = 
 				new PaintNodeStructuresTaskFactory(vmm, vmff, lex, settings, Scope.SELECTEDNODES, true);

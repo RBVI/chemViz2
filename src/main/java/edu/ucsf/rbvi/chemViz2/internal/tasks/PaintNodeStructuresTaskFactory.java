@@ -65,6 +65,10 @@ public class PaintNodeStructuresTaskFactory extends ChemVizAbstractTaskFactory
 		return new TaskIterator(new PaintStructuresTask(vmm, vmff, lex, networkView, null, scope, settings, remove));
 	}
 
+	public TaskIterator createTaskIterator(CyNetworkView networkView, Scope scope, boolean remove) {
+		return new TaskIterator(new PaintStructuresTask(vmm, vmff, lex, networkView, null, scope, settings, remove));
+	}
+
 	public TaskIterator createTaskIterator(View<CyNode> nView, CyNetworkView netView) {
 		return new TaskIterator(new PaintStructuresTask(vmm, vmff, lex, netView, nView.getModel(), scope, settings, remove));
 	}

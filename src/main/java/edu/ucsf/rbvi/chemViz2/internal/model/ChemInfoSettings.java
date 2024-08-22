@@ -38,6 +38,7 @@ package edu.ucsf.rbvi.chemViz2.internal.model;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetCurrentNetworkEvent;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
+import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -48,13 +49,19 @@ import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.model.events.ColumnCreatedEvent;
 import org.cytoscape.model.events.ColumnCreatedListener;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskObserver;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.Tunable;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.util.ListMultipleSelection;
 import org.cytoscape.work.util.ListSingleSelection;
 
 import edu.ucsf.rbvi.chemViz2.internal.model.CompoundManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.PaintNodeStructuresTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemVizResultsPanel;
 
 import java.util.Arrays;
@@ -62,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -75,14 +83,23 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 																													Fingerprinter.FCFP4, Fingerprinter.FCFP6,
 	                                                        Fingerprinter.GRAPHONLY, Fingerprinter.HYBRIDIZATION, 
 	                                                        Fingerprinter.KLEKOTAROTH, Fingerprinter.SUBSTRUCTURE};
-	private List<String> possibleAttributes = null;
 	private CyApplicationManager manager = null;
-	private CyNetwork network = null;
 	private CompoundManager compoundManager = null;
 	private DescriptorManager descriptorManager = null;
 	private CyServiceRegistrar serviceRegistrar = null;
+	private final TaskManager<?,?> dialogTaskManager;
+  private final SynchronousTaskManager<?> synchronousTaskManager;
+  private final CommandExecutorTaskFactory commandExecutorTaskFactory;
+
+
 	private boolean haveGUI = true;
+	private CyNetwork network = null;
+	private List<String> possibleAttributes = null;
+
+	// Save state
 	private ChemVizResultsPanel resultsPanel = null;
+	private boolean structuresShown = false;
+	private PaintNodeStructuresTaskFactory paintTaskFactory;
 
 	@Tunable(description="Maximum number of compounds to show in 2D structure popup", groups=" ")
 	public int maxCompounds = 0;
@@ -116,6 +133,11 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		this.network = manager.getCurrentNetwork();
 		this.compoundManager = cmpndManager;
 		this.descriptorManager = descManager;
+
+		dialogTaskManager = registrar.getService(TaskManager.class);
+    synchronousTaskManager = registrar.getService(SynchronousTaskManager.class);
+    commandExecutorTaskFactory = registrar.getService(CommandExecutorTaskFactory.class);
+
 		updateAttributes(network);
 	}
 
@@ -138,6 +160,41 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		network = manager.getCurrentNetwork();
 		return network;
 	}
+	public CyNetworkView getCurrentNetworkView() { 
+		return manager.getCurrentNetworkView();
+	}
+		
+
+	public void execute(TaskIterator iterator) {
+    execute(iterator, false);
+  }
+
+  public void execute(TaskIterator iterator, TaskObserver observer) {
+    execute(iterator, observer, false);
+  }
+
+  public void execute(TaskIterator iterator, boolean synchronous) {
+    if (synchronous) {
+      synchronousTaskManager.execute(iterator);
+    } else {
+      dialogTaskManager.execute(iterator);
+    }
+  }
+
+  public void execute(TaskIterator iterator, TaskObserver observer, boolean synchronous) {
+    if (synchronous) {
+      synchronousTaskManager.execute(iterator, observer);
+    } else {
+      dialogTaskManager.execute(iterator, observer);
+    }
+  }
+
+  public void executeCommand(String namespace, String command,
+                             Map<String, Object> args, TaskObserver observer) {
+    TaskIterator ti = commandExecutorTaskFactory.createTaskIterator(namespace, command, args, observer);
+    execute(ti, true);
+  }
+
 
 	public boolean hasNodeCompounds(Collection<CyNode> nodeSet) {
 		if (network == null) return false;
@@ -219,6 +276,14 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 	public void setResultsPanel(ChemVizResultsPanel panel) {
 		resultsPanel = panel;
+	}
+
+	public boolean getStructuresShown() { return structuresShown; }
+	public void setStructuresShown(boolean shown) { structuresShown = shown; }
+
+	public PaintNodeStructuresTaskFactory getPaintNodeStructuresTaskFactory() { return paintTaskFactory; }
+	public void setPaintNodeStructuresTaskFactory(PaintNodeStructuresTaskFactory factory) { 
+		paintTaskFactory = factory;
 	}
 
 	private void updateAttributes(CyNetwork network) {
