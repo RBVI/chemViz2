@@ -63,11 +63,13 @@ import edu.ucsf.rbvi.chemViz2.internal.model.Compound.AttriType;
 import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.PaintNodeStructuresTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.ui.ChemVizResultsPanel;
+import edu.ucsf.rbvi.chemViz2.internal.ui.CompoundTable;
 
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,8 +100,9 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 	// Save state
 	private ChemVizResultsPanel resultsPanel = null;
-	private boolean structuresShown = false;
 	private PaintNodeStructuresTaskFactory paintTaskFactory;
+	private Map<CyNetwork, Boolean> structuresShown;
+	private Map<CyNetwork, CompoundTable> tableMap;
 
 	@Tunable(description="Maximum number of compounds to show in 2D structure popup", groups=" ")
 	public int maxCompounds = 0;
@@ -136,11 +139,14 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		this.network = manager.getCurrentNetwork();
 		this.compoundManager = cmpndManager;
 		this.descriptorManager = descManager;
+		
 
 		dialogTaskManager = registrar.getService(TaskManager.class);
     synchronousTaskManager = registrar.getService(SynchronousTaskManager.class);
     commandExecutorTaskFactory = registrar.getService(CommandExecutorTaskFactory.class);
 
+		tableMap = new HashMap<>();
+		structuresShown = new HashMap<>();
 		updateAttributes(network);
 	}
 
@@ -281,8 +287,13 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		resultsPanel = panel;
 	}
 
-	public boolean getStructuresShown() { return structuresShown; }
-	public void setStructuresShown(boolean shown) { structuresShown = shown; }
+	public void setStructuresShown(CyNetwork network, boolean shown) { structuresShown.put(network, shown); }
+	public boolean getStructuresShown(CyNetwork network) { 
+		if (structuresShown.containsKey(network))
+			return structuresShown.get(network);
+		return false;
+	}
+	public void removeStructuresShown(CyNetwork network) { structuresShown.remove(network); }
 
 	public PaintNodeStructuresTaskFactory getPaintNodeStructuresTaskFactory() { return paintTaskFactory; }
 	public void setPaintNodeStructuresTaskFactory(PaintNodeStructuresTaskFactory factory) { 
@@ -291,6 +302,10 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 	public boolean getAutoShow() { return autoShow; }
 	public void setAutoShow(boolean autoShow) { this.autoShow = autoShow; }
+
+	public void addCompoundTable(CyNetwork network, CompoundTable table) { tableMap.put(network, table); }
+	public CompoundTable getCompoundTable(CyNetwork network) { return tableMap.get(network); }
+	public void removeCompoundTable(CyNetwork network) { tableMap.remove(network); }
 
 	private void updateAttributes(CyNetwork network) {
 		if (network == null) return;

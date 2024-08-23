@@ -25,8 +25,8 @@ public class ShowResultsPanelTaskFactory extends ChemVizAbstractTaskFactory {
 		// If we're doing autoShow, create the resultsPanel now.  We won't actually show it until
 		// we open up a network that has compounds
 		if (settings.getAutoShow()) {
-						ShowResultsPanelTask task = new ShowResultsPanelTask(settings, true);
-						task.run(null);
+			ShowResultsPanelTask task = new ShowResultsPanelTask(settings, true);
+			task.run(null);
 		}
 	}
 

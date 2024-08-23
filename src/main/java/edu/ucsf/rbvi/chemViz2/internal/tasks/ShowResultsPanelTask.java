@@ -72,6 +72,7 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the popup.
  	 */
 	public void run(TaskMonitor taskMonitor) {
+		System.out.println("Showing the results panel");
 		CyServiceRegistrar registrar = settings.getServiceRegistrar();
 		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
 		CytoPanel cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
@@ -84,11 +85,11 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
 		}
 
 		// Register it
-		registrar.registerService(panel, CytoPanelComponent.class, new Properties());
 		registrar.registerService(panel, RowsSetListener.class, new Properties());
 		registrar.registerService(panel, SetCurrentNetworkListener.class, new Properties());
 
 		if (cytoPanel.getState() == CytoPanelState.HIDE && !autoShow)
+			registrar.registerService(panel, CytoPanelComponent.class, new Properties());
 			cytoPanel.setState(CytoPanelState.DOCK);
 
 	}

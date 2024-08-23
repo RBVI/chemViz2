@@ -93,6 +93,8 @@ import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.application.events.SetCurrentNetworkEvent;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
+import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.util.swing.IconManager;
@@ -109,6 +111,7 @@ import edu.ucsf.rbvi.chemViz2.internal.model.DescriptorManager;
 import edu.ucsf.rbvi.chemViz2.internal.model.TableUtils;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.CalculateNodeMCSSTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.ChemVizAbstractTaskFactory.Scope;
+import edu.ucsf.rbvi.chemViz2.internal.tasks.CompoundTableTask;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.SearchNodesTaskFactory;
 import edu.ucsf.rbvi.chemViz2.internal.tasks.UpdateCompoundsTask;
 
@@ -126,6 +129,10 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 	private List<Compound> compoundList;
 	private JScrollPane scrollPane;
 	private JPanel compoundsPanel;
+	private CytoPanel cytoPanel;
+
+	private JCheckBox paintStructures;
+	private JCheckBox showTable;
 
 	private static final int LABEL_HEIGHT = 20;
 	enum LabelType {ATTRIBUTE, TEXT};
@@ -135,6 +142,9 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		this.panelName = panelName;
 		this.labelAttribute = labelAttribute;
 		this.settings = settings;
+
+		CySwingApplication swingApplication = settings.getServiceRegistrar().getService(CySwingApplication.class);
+		cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
 
 		this.mgr = settings.getCompoundManager();
 		network = settings.getCurrentNetwork();
@@ -181,8 +191,9 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 	@Override
 	public void handleEvent(SetCurrentNetworkEvent e) {
-		if (e.getNetwork() != null)
+		if (e.getNetwork() != null) {
 			this.network = e.getNetwork();
+		}
 
 		updateCompoundsPanel();
 		if (settings.getAutoShow()) {
@@ -204,6 +215,8 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		Collection<CyNode> nodeList = network.getNodeList();
 		if (settings.hasNodeCompounds(nodeList)) {
 			settings.getServiceRegistrar().registerService(this, CytoPanelComponent.class, new Properties());
+			if (cytoPanel.getState() == CytoPanelState.HIDE)
+				cytoPanel.setState(CytoPanelState.DOCK);
 		} else {
 			settings.getServiceRegistrar().unregisterService(this, CytoPanelComponent.class);
 		}
@@ -279,17 +292,44 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		EasyGBC upperGBC = new EasyGBC();
 		JPanel upperPanel = new JPanel(new GridBagLayout());
     {
-			JCheckBox paintStructures = new JCheckBox("Paint Structures on Nodes");
+			paintStructures = new JCheckBox("Paint Structures on Nodes");
       paintStructures.setFont(labelFont);
-      paintStructures.setSelected(settings.getStructuresShown());
+      paintStructures.setSelected(settings.getStructuresShown(network));
       paintStructures.addItemListener(new ItemListener() {
         public void itemStateChanged(ItemEvent e) {
-					System.out.println("Item changed");
-          settings.execute(
-            settings.getPaintNodeStructuresTaskFactory().createTaskIterator(settings.getCurrentNetworkView(), Scope.ALLNODES, settings.getStructuresShown()), true);
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						settings.setStructuresShown(network, true);
+					} else {
+						settings.setStructuresShown(network, false);
+					}
+					settings.execute(
+           	 settings.getPaintNodeStructuresTaskFactory().createTaskIterator(settings.getCurrentNetworkView(), Scope.ALLNODES, !settings.getStructuresShown(network)), true);
         }
       });
-      upperPanel.add(paintStructures, upperGBC.right().insets(0,10,0,0).noExpand());
+      upperPanel.add(paintStructures, upperGBC.insets(0,10,0,0).noExpand());
+    }
+
+		{
+			showTable = new JCheckBox("Show Compound Table");
+      showTable.setFont(labelFont);
+			if (settings.getCompoundTable(network) != null) {
+				showTable.setSelected(true);
+			} else {
+				showTable.setSelected(false);
+			}
+      showTable.addItemListener(new ItemListener() {
+        public void itemStateChanged(ItemEvent e) {
+					CompoundTable table = settings.getCompoundTable(network);
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						CompoundTableTask task = new CompoundTableTask(network, null, Scope.ALLNODES, settings);
+						task.run(null);
+					} else {
+						table.dispose();
+						settings.removeCompoundTable(network);
+					}
+        }
+      });
+      upperPanel.add(showTable, upperGBC.down().insets(0,-10,0,0).noExpand());
     }
 
 		controlPanel.add(upperPanel);
@@ -318,7 +358,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
       mcssButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
 					CalculateNodeMCSSTaskFactory tf = 
-							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, Scope.ALLNODES);
+							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, Scope.SELECTEDNODES);
           settings.execute(tf.createTaskIterator(network), false);
         }
       });

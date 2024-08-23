@@ -141,9 +141,9 @@ public class PaintStructuresTask extends AbstractCompoundTask {
 			CyColumn column = nodeTable.getColumn(PASSTHROUGH_COLUMN);
 			if (column == null)
 				nodeTable.createColumn(PASSTHROUGH_COLUMN, String.class, false);
-			settings.setStructuresShown(true);
+			settings.setStructuresShown(network, true);
 		} else {
-			settings.setStructuresShown(false);
+			settings.setStructuresShown(network, false);
 		}
 
 		// OK, now add this to our visual style

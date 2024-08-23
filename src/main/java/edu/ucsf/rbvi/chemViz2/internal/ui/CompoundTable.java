@@ -217,6 +217,9 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		thisDialog = this;
 		setVisible(true);
 
+		// Tell the settings dialog so it can track things
+		settings.addCompoundTable(network, this);
+
 		// Finally, add ourselves to listen for table row changes so that we
 		// can know when selections happen
 		settings.getServiceRegistrar().registerService(this, RowsSetListener.class, new Properties());
@@ -382,6 +385,7 @@ public class CompoundTable extends JDialog implements ListSelectionListener,
 		if (e.getActionCommand().equals("close")) {
 			TableAttributeHandler.setTableAttributes(table, tableModel, network);
 			TableAttributeHandler.setSizeAttributes(this, network);
+			settings.removeCompoundTable(network);
 			dispose();
 		} else if (e.getActionCommand().equals("export")) {
 			// Get the file name
