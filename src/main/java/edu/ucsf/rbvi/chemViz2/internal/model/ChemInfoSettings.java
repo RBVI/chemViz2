@@ -107,6 +107,9 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	@Tunable(description="Minimum tanimoto value to consider for edge creation", groups=" ")
 	public double tcCutoff = 0.50;
 
+	@Tunable(description="Auto show results panel", groups="Depiction options")
+	public boolean autoShow = true;
+
 	@Tunable(description="Fingerprint algorithm to use", groups=" ")
 	public ListSingleSelection<Fingerprinter> fingerprinter = 
 		getListSingleSelection(Arrays.asList(fingerprintList), Fingerprinter.PUBCHEM);
@@ -286,6 +289,9 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		paintTaskFactory = factory;
 	}
 
+	public boolean getAutoShow() { return autoShow; }
+	public void setAutoShow(boolean autoShow) { this.autoShow = autoShow; }
+
 	private void updateAttributes(CyNetwork network) {
 		if (network == null) return;
 		possibleAttributes = getPossibleAttributes(network);
@@ -434,6 +440,8 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 				setAttributeList(nv[1].split(","),smilesAttributes);
 			} else if (nv[0].equals("inChiAttributes")) {
 				setAttributeList(nv[1].split(","),inChiAttributes);
+			} else if (nv[0].equals("autoShow")) {
+				autoShow = Boolean.parseBoolean(nv[1]);
 			}
 		}
 	}
@@ -444,6 +452,7 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 		settings += ";labelAttribute="+labelAttribute.getSelectedValue();
 		settings += ";smilesAttributes="+getAttributeList(smilesAttributes);
 		settings += ";inChiAttributes="+getAttributeList(inChiAttributes);
+		settings += ";autoShow="+autoShow;
 		return settings;
 	}
 

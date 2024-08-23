@@ -63,9 +63,11 @@ import java.net.URLEncoder;
 import java.text.DecimalFormat;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -82,6 +84,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 
+import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -144,6 +147,10 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 		updateSelection();
 		init();
+
+		if (settings.getAutoShow()) {
+			checkShow();
+		}
 	}
 
 	@Override
@@ -178,6 +185,9 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			this.network = e.getNetwork();
 
 		updateCompoundsPanel();
+		if (settings.getAutoShow()) {
+			checkShow();
+		}
 	}
 
 	@Override
@@ -187,6 +197,16 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 		// It's a selection event and it's in our network
 		updateCompoundsPanel();
+	}
+
+	public void checkShow() {
+		// Get all nodes
+		Collection<CyNode> nodeList = network.getNodeList();
+		if (settings.hasNodeCompounds(nodeList)) {
+			settings.getServiceRegistrar().registerService(this, CytoPanelComponent.class, new Properties());
+		} else {
+			settings.getServiceRegistrar().unregisterService(this, CytoPanelComponent.class);
+		}
 	}
 
 	private void updateSelection() {

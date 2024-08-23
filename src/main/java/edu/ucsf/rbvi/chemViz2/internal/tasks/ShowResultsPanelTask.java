@@ -60,10 +60,12 @@ import edu.ucsf.rbvi.chemViz2.internal.ui.ChemVizResultsPanel;
  */
 public class ShowResultsPanelTask extends AbstractCompoundTask {
 	ChemInfoSettings settings;
+	boolean autoShow;
 
-	public  ShowResultsPanelTask(ChemInfoSettings settings) {
+	public  ShowResultsPanelTask(ChemInfoSettings settings, boolean autoShow) {
 		super(settings);
 		this.settings = settings;
+		this.autoShow = autoShow;
 	}
 
 	/**
@@ -86,7 +88,7 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
 		registrar.registerService(panel, RowsSetListener.class, new Properties());
 		registrar.registerService(panel, SetCurrentNetworkListener.class, new Properties());
 
-		if (cytoPanel.getState() == CytoPanelState.HIDE)
+		if (cytoPanel.getState() == CytoPanelState.HIDE && !autoShow)
 			cytoPanel.setState(CytoPanelState.DOCK);
 
 	}
