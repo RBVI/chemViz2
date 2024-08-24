@@ -113,7 +113,7 @@ public class CompoundResultPanel extends JPanel implements ComponentListener {
     setLayout(new BorderLayout());
 
 		outerPanel = new JPanel();
-		outerPanel.setSize(200, 400);
+		outerPanel.setSize(140, 400);
 
     add(BorderLayout.CENTER, outerPanel);
 

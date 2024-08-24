@@ -423,11 +423,4 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 		return textLabel;
 	}
 
-	private String wrap(String string, int width) {
-		if (string.length() <= width)
-			return string;
-		String chunk = string.substring(0, width);
-		return chunk+"\n"+wrap(string.substring(width,string.length()), width);
-	}
-
 }
