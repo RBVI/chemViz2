@@ -357,8 +357,12 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
       lowerPanel.add(mcssButton);
       mcssButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+					Scope scope = Scope.ALLNODES;
+					if (compoundList.size() > 0)
+						scope = Scope.SELECTEDNODES;
+
 					CalculateNodeMCSSTaskFactory tf = 
-							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, Scope.SELECTEDNODES);
+							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, scope);
           settings.execute(tf.createTaskIterator(network), false);
         }
       });

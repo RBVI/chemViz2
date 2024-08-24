@@ -72,7 +72,6 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
  	 * Runs the task -- this will get all of the compounds, fetching the images (if necessary) and creates the popup.
  	 */
 	public void run(TaskMonitor taskMonitor) {
-		System.out.println("Showing the results panel");
 		CyServiceRegistrar registrar = settings.getServiceRegistrar();
 		CySwingApplication swingApplication = registrar.getService(CySwingApplication.class);
 		CytoPanel cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
