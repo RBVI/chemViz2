@@ -130,6 +130,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 	private JScrollPane scrollPane;
 	private JPanel compoundsPanel;
 	private CytoPanel cytoPanel;
+	private CytoPanelComponent thisComponent;
 
 	private JCheckBox paintStructures;
 	private JCheckBox showTable;
@@ -153,6 +154,7 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
     iconFont = iconManager.getIconFont(17.0f);
     labelFont = new Font("SansSerif", Font.BOLD, 10);
     textFont = new Font("SansSerif", Font.PLAIN, 10);
+		thisComponent = this;
 
 
 		updateSelection();
@@ -364,6 +366,16 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 					CalculateNodeMCSSTaskFactory tf = 
 							new CalculateNodeMCSSTaskFactory(settings, null, null, true, false, scope);
           settings.execute(tf.createTaskIterator(network), false);
+        }
+      });
+
+      JButton closeButton = new JButton("Close Panel");
+      closeButton.setToolTipText("Close panel");
+      closeButton.setFont(labelFont);
+      lowerPanel.add(closeButton);
+      closeButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+					settings.getServiceRegistrar().unregisterService(thisComponent, CytoPanelComponent.class);
         }
       });
     }
