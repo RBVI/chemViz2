@@ -84,11 +84,11 @@ public class ShowResultsPanelTask extends AbstractCompoundTask {
 		}
 
 		// Register it
-		registrar.registerService(panel, CytoPanelComponent.class, new Properties());
 		registrar.registerService(panel, RowsSetListener.class, new Properties());
 		registrar.registerService(panel, SetCurrentNetworkListener.class, new Properties());
 
 		if (cytoPanel.getState() == CytoPanelState.HIDE && !autoShow)
+			registrar.registerService(panel, CytoPanelComponent.class, new Properties());
 			cytoPanel.setState(CytoPanelState.DOCK);
 
 	}

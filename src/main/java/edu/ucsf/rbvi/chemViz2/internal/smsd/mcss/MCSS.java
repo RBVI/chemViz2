@@ -80,15 +80,15 @@ final public class MCSS {
 
         logger.debug("Demand threads: " + numberOfThreads);
         logger.debug(", Available threads: " + threadsAvailable);
-        System.out.println("Demand threads: " + numberOfThreads);
-        System.out.println(", Available threads: " + threadsAvailable);
+        // System.out.println("Demand threads: " + numberOfThreads);
+        // System.out.println(", Available threads: " + threadsAvailable);
         if (numberOfThreads > 0 && threadsAvailable >= numberOfThreads) {
             threadsAvailable = numberOfThreads;
         } else if (threadsAvailable <= 0) {
             threadsAvailable = 1;
         }
         logger.debug(", Assigned threads: " + threadsAvailable + "\n");
-        System.out.println(", Assigned threads: " + threadsAvailable + "\n");
+        // System.out.println(", Assigned threads: " + threadsAvailable + "\n");
         /*
          * Remove hydrogen from the molecules
          **/
@@ -185,17 +185,23 @@ final public class MCSS {
         }
         try {
             /*
-             * Wait all the threads to finish
+             * Wait for all the threads to finish
              */
             List<Future<LinkedBlockingQueue<IAtomContainer>>> futureList = threadPool.invokeAll(callablesQueue);
             /*
              * Collect the results
              */
-            for (Iterator<Future<LinkedBlockingQueue<IAtomContainer>>> it = futureList.iterator(); it.hasNext();) {
-                Future<LinkedBlockingQueue<IAtomContainer>> callable = it.next();
+            // for (Iterator<Future<LinkedBlockingQueue<IAtomContainer>>> it = futureList.iterator(); it.hasNext();) {
+            //     Future<LinkedBlockingQueue<IAtomContainer>> callable = it.next();
+						for (Future<LinkedBlockingQueue<IAtomContainer>> callable: futureList) {
                 LinkedBlockingQueue<IAtomContainer> mapping = callable.get();
                 if (callable.isDone() && mapping != null) {
-                    solutions.addAll(mapping);
+										if (mapping.size() > 0)
+											solutions.addAll(mapping);
+										else {
+											solutions.clear();
+											break;
+										}
                 } else {
                     logger.warn("WARNING: InComplete job in AtomMappingTool: ");
                 }
