@@ -287,6 +287,24 @@
       <version>1.2.1</version>
 			<optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.github.dan2097</groupId>
+      <artifactId>jna-inchi-darwin-aarch64</artifactId>
+      <version>1.2.1</version>
+			<optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.github.dan2097</groupId>
+      <artifactId>jna-inchi-darwin-x86-64</artifactId>
+      <version>1.2.1</version>
+			<optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.github.dan2097</groupId>
+      <artifactId>jna-inchi-win32-x86-64</artifactId>
+      <version>1.2.1</version>
+			<optional>true</optional>
+    </dependency>
 
 		<dependency>
 			<groupId>xml-apis</groupId>
