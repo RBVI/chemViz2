@@ -160,7 +160,11 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 	public Fingerprinter getFingerprinter() { return fingerprinter.getSelectedValue(); }
 
-	public String getLabelAttribute() { return labelAttribute.getSelectedValue(); }
+	public String getLabelAttribute() { 
+		if (labelAttribute == null)
+			return "";
+		return labelAttribute.getSelectedValue(); 
+	}
 
 	public CompoundManager getCompoundManager() { return compoundManager; }
 	public DescriptorManager getDescriptorManager() { return descriptorManager; }

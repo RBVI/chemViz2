@@ -214,6 +214,8 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 	public void checkShow() {
 		// Get all nodes
+		if (network == null)
+			return;
 		Collection<CyNode> nodeList = network.getNodeList();
 		if (settings.hasNodeCompounds(nodeList)) {
 			settings.getServiceRegistrar().registerService(this, CytoPanelComponent.class, new Properties());
@@ -225,6 +227,8 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 	}
 
 	private void updateSelection() {
+		if (network == null)
+			return;
 		List<CyIdentifiable> selectionList = 
 			new ArrayList<CyIdentifiable>(CyTableUtil.getNodesInState(network, CyNetwork.SELECTED, true));
 		selectionList.addAll(CyTableUtil.getEdgesInState(network, CyNetwork.SELECTED, true));
