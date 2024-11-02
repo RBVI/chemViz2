@@ -255,6 +255,9 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 
 		updateSelection();
 
+		if (compoundList == null)
+			return;
+
 		for (Compound cmpd: compoundList) {
 			JPanel newPanel = createCompoundPanel(cmpd);
 			if (newPanel == null)
