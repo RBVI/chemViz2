@@ -85,6 +85,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 
 import org.cytoscape.application.swing.CytoPanelState;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -229,9 +230,13 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 	private void updateSelection() {
 		if (network == null)
 			return;
-		List<CyIdentifiable> selectionList = 
-			new ArrayList<CyIdentifiable>(CyTableUtil.getNodesInState(network, CyNetwork.SELECTED, true));
-		selectionList.addAll(CyTableUtil.getEdgesInState(network, CyNetwork.SELECTED, true));
+		List<CyIdentifiable>selectionList = new ArrayList<CyIdentifiable>();
+		List<CyNode> nodeList = CyTableUtil.getNodesInState(network, CyNetwork.SELECTED, true);
+		if (nodeList != null)
+			selectionList.addAll(nodeList);
+		List<CyEdge> edgeList = CyTableUtil.getEdgesInState(network, CyNetwork.SELECTED, true);
+		if (edgeList != null)
+			selectionList.addAll(edgeList);
 
 		// This will make sure all of the compounds for the selected objects are created
 		SynchronousTaskManager taskManager = (SynchronousTaskManager)settings.getServiceRegistrar().getService(SynchronousTaskManager.class);
@@ -245,7 +250,6 @@ public class ChemVizResultsPanel extends JPanel implements CytoPanelComponent,
 			if (c != null && c.size() > 0)
 				compoundList.addAll(c);
 		}
-
 	}
 
 	private void updateCompoundsPanel() {

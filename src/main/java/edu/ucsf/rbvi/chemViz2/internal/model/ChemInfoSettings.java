@@ -405,10 +405,14 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 
 		List<String> selectedValues = new ArrayList<String>();
 		for (String str: list) {
+			// System.out.println("Str = "+str);
 			if (defaults.contains(str))
 				selectedValues.add(str);
-			else if ((str.startsWith("node.") || str.startsWith("edge.")) && defaults.contains(str.substring(5)))
+			else if ((str.startsWith("node.") || str.startsWith("edge.")) && 
+					     (defaults.contains(str.substring(5)) || defaults.contains(str.substring(str.indexOf("::")+2)))) {
+				// System.out.println("Adding value: "+str);
 				selectedValues.add(str);
+		  }
 		}
 		if (selectedValues.size() > 0)
 			s.setSelectedValues(selectedValues);
@@ -428,7 +432,12 @@ public class ChemInfoSettings implements SetCurrentNetworkListener, ColumnCreate
 	}
 
 	private void setAttributeList(String[] attributes, ListMultipleSelection<String> attrs) {
-		List<String> attrList = Arrays.asList(attributes);
+		List<String> attrList = new ArrayList<>();
+		for (String a: attributes)
+			if (a != null && !a.equals("null")) attrList.add(a);
+
+		// System.out.println("attrList = "+attrList);
+
 		if (attrList != null && attrList.size() > 0)
 			attrs.setSelectedValues(attrList);
 	}
